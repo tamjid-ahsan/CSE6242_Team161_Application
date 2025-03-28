@@ -1,0 +1,50 @@
+# Python and Jupyter
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
+develop-eggs/
+.mypackage.egg-info/
+htmlcov/
+.coverage
+.tox/
+.venv/
+venv/
+env/  # Exclude the environment folder if it's within the project
+*.log
+*.bak
+*.swp
+*.swo
+.DS_Store
+
+# Poetry
+poetry.lock
+.venv/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Poetry Cache
+.poetry/cache/
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Other
+*.sqlite
+*.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.bak
+*.swp
+*.swo
+.DS_Store

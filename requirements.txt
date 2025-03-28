@@ -1,0 +1,7 @@
+ipywidgets
+shiny
+plotly
+matplotlib
+scipy
+pandas
+requests
