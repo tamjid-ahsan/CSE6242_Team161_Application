@@ -85,7 +85,7 @@ app_ui = ui.page_fluid(
     #         ui.output_ui("info_box")
     #     )
     # ),
-    title="US Regions Recommendation Tool"
+    title="US Relocation Recommendation Tool"
 )
 
 # ----------------------------
