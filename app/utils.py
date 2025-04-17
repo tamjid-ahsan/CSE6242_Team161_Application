@@ -339,8 +339,8 @@ def calculate_top_suggestion(zipcode, radius, df_sorted):
 # 58856
 def collectingZipInformation(zip):
     zipcode = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))                              # './data/cleaned_merged_data.csv'
-    pol_df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"), dtype={"ZIP": "str"})    # "./data/cleaned_2016_election_results.csv"
+    df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_merged_data.csv"))                              # './data/cleaned_merged_data.csv'
+    pol_df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_2016_election_results.csv"), dtype={"ZIP": "str"})    # "./data/cleaned_2016_election_results.csv"
     # df = pd.read_csv('data/cleaned_merged_data.csv')
     # m_df = df.query("zip == @zipcode").T
     info = df.query("zip == @zipcode")[
