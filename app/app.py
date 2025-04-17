@@ -477,7 +477,7 @@ def server(input, output, session):
     @render.ui
     def info_label_ui():
         if map_rendered.get():
-            return ui.div(ui.p("Ok"), id="info_label")
+            return ui.div(ui.p("Useful idiot"), id="info_label")
         else:
             return ui.div(id="info_label", style="display: none;")
 

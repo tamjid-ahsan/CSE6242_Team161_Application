@@ -216,7 +216,7 @@ def checkZip(zip):
 
 def collectingLineGraphData(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))                 # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv"))                 # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
     m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValue"]].dropna()
@@ -225,7 +225,7 @@ def collectingLineGraphData(zip):
 
 def collectingLineGraphData_HomeValueForecast(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))                  # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv"))                  # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
 
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
