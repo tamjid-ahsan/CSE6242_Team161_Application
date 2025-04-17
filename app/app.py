@@ -299,7 +299,7 @@ def server(input, output, session):
     def us_map():
         scored_df = computed_scores.get()
         ## placeholder
-        scored_df = pd.read_csv("./cloud/project/app/ml/sample_ML.csv",
+        scored_df = pd.read_csv("cloud/project/app/ml/sample_ML.csv",
                                 dtype={"zip": "str"})  # <<< placeholder; will be replaced by ml predictions
         if scored_df is None or scored_df.empty:
             # Return a minimal empty figure instead of None
