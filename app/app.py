@@ -4,10 +4,16 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import math
-import requests
 from shinywidgets import output_widget, render_widget
-from utils import checkZip, collectingLineGraphData, collectingZipInformation, \
-    collectingLineGraphData_HomeValueForecast, usMapRender, haversine, calculate_top_suggestion
+from .utils import (
+    checkZip, 
+    collectingLineGraphData, 
+    collectingZipInformation,
+    collectingLineGraphData_HomeValueForecast, 
+    usMapRender, 
+    haversine, 
+    calculate_top_suggestion
+)
 
 import os
 from datetime import datetime
