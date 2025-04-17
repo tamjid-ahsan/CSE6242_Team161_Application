@@ -4,6 +4,7 @@ plotly
 matplotlib
 scipy
 pandas
+numpy
 requests
 shinywidgets
 anywidget
