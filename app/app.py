@@ -23,8 +23,8 @@ from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
 os.makedirs(assets_path, exist_ok=True)
 
-BASE_DIR = os.path.dirname(__file__)        # /cloud/project/app
-DATA_DIR = os.path.join(BASE_DIR, "data")  # /cloud/project/app/data
+BASE_DIR = os.path.dirname(__file__)            # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")       # /cloud/project/app/data
 
 # ----------------------------
 # Sample Data for 10 States
@@ -299,7 +299,7 @@ def server(input, output, session):
     def us_map():
         scored_df = computed_scores.get()
         ## placeholder
-        scored_df = pd.read_csv("./ml/sample_ML.csv",
+        scored_df = pd.read_csv("./cloud/project/app/ml/sample_ML.csv",
                                 dtype={"zip": "str"})  # <<< placeholder; will be replaced by ml predictions
         if scored_df is None or scored_df.empty:
             # Return a minimal empty figure instead of None
