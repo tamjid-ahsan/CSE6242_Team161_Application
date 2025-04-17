@@ -8,32 +8,39 @@ import numpy as np
 import plotly.express as px
 import os
 
-BASE_DIR = os.path.dirname(__file__)                                                # /cloud/project/app
-DATA_DIR = os.path.join(BASE_DIR, "data")                                           # /cloud/project/app/data
+BASE_DIR = os.path.dirname(__file__)        # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")   # /cloud/project/app/data
+
 
 def usMapRender(df):
-    with open(os.path.join(DATA_DIR, "us-states.json"), "r") as f:                  # "./data/us-states.json"
+    with open(
+        os.path.join(DATA_DIR, "us-states.json"), "r"
+    ) as f:  # "./data/us-states.json"
         us_state = json.load(f)
 
-    with open(os.path.join(DATA_DIR, "us-counties-fips.json"), "r") as f:           # "./data/us-counties-fips.json"
+    with open(
+        os.path.join(DATA_DIR, "us-counties-fips.json"), "r"
+    ) as f:  # "./data/us-counties-fips.json"
         us_counties = json.load(f)
 
-    with open(os.path.join(DATA_DIR, "zip_codes.geojson"), "r") as f:               # "./data/zip_codes.geojson"
+    with open(
+        os.path.join(DATA_DIR, "zip_codes.geojson"), "r"
+    ) as f:  # "./data/zip_codes.geojson"
         us_zip_full = json.load(f)
 
     # Filter zip codes to only those in the dataframe
     # Convert df zip codes to a set for faster lookup
-    df_zip_codes = set(df['zip'].astype(str))
+    df_zip_codes = set(df["zip"].astype(str))
 
     # Filter the features list to only include zip codes in df
-    filtered_features = [feature for feature in us_zip_full["features"]
-                         if feature["properties"]["ZCTA5CE10"] in df_zip_codes]
+    filtered_features = [
+        feature
+        for feature in us_zip_full["features"]
+        if feature["properties"]["ZCTA5CE10"] in df_zip_codes
+    ]
 
     # Create a new geojson object with only the filtered features
-    us_zip = {
-        "type": us_zip_full["type"],
-        "features": filtered_features
-    }
+    us_zip = {"type": us_zip_full["type"], "features": filtered_features}
 
     gdf_state = gpd.GeoDataFrame.from_features(us_state["features"])
     gdf_counties = gpd.GeoDataFrame.from_features(us_counties["features"])
@@ -45,17 +52,15 @@ def usMapRender(df):
     df_for_join["zip"] = df_for_join["zip"].astype(str)
 
     # Join the dataframes
-    gdf_zip = gdf_zip.merge(df_for_join[["zip", "rank"]],
-                            left_on="ZCTA5CE10",
-                            right_on="zip",
-                            how="left")
+    gdf_zip = gdf_zip.merge(
+        df_for_join[["zip", "rank"]], left_on="ZCTA5CE10", right_on="zip", how="left"
+    )
 
     # Create color scale based on rank
     min_rank = df["rank"].min()
     max_rank = df["rank"].max()
     colorscale = px.colors.sequential.Viridis
 
-    # Instead of using a single choropleth layer, let's create multiple fill layers
     # Create bins for ranks to apply different colors
     n_bins = 10  # Number of color bins
     bins = np.linspace(min_rank, max_rank, n_bins + 1)
@@ -70,9 +75,9 @@ def usMapRender(df):
 
         # For the last bin, include the upper bound
         if i == n_bins - 1:
-            bin_gdf = gdf_zip[(gdf_zip['rank'] >= lower) & (gdf_zip['rank'] <= upper)]
+            bin_gdf = gdf_zip[(gdf_zip["rank"] >= lower) & (gdf_zip["rank"] <= upper)]
         else:
-            bin_gdf = gdf_zip[(gdf_zip['rank'] >= lower) & (gdf_zip['rank'] < upper)]
+            bin_gdf = gdf_zip[(gdf_zip["rank"] >= lower) & (gdf_zip["rank"] < upper)]
 
         # Skip if empty
         if bin_gdf.empty:
@@ -83,7 +88,11 @@ def usMapRender(df):
 
         # Get color from viridis colorscale
         color_idx = int(bin_pos * (len(colorscale) - 1))
-        color = colorscale[color_idx][1] if isinstance(colorscale[0], (list, tuple)) else colorscale[color_idx]
+        color = (
+            colorscale[color_idx][1]
+            if isinstance(colorscale[0], (list, tuple))
+            else colorscale[color_idx]
+        )
 
         # Create layer for this bin
         if not bin_gdf.empty:
@@ -104,17 +113,29 @@ def usMapRender(df):
         "color": "red",
         "line": {"width": 2},
     }
+
+    # Add county boundaries layer
     county_layer = {
         "source": json.loads(gdf_counties.geometry.to_json()),
         "below": "traces",
         "type": "line",
         "color": "black",
-        "line": {"width": .2},
+        "line": {"width": 0.2},
         "opacity": 0.3,
     }
 
+    # # Add zip boundaries layer
+    # zip_codes_layer = {
+    #     "source": json.loads(gdf_zip.geometry.to_json()),
+    #     "below": "traces",
+    #     "type": "line",
+    #     "color": "black",
+    #     "line": {"width": .2},
+    #     "opacity": 0.3,
+    # }
+
     # Combine all layers
-    all_layers = [state_layer,county_layer] + fill_layers
+    all_layers = [state_layer, county_layer] + fill_layers
 
     fig = (
         px.scatter_map(
@@ -122,20 +143,32 @@ def usMapRender(df):
             lat="lat",
             lon="lng",
             color="rank",
-            hover_name='zip',
-            custom_data=['zip', 'city', 'state_name', 'population', 'avg_temp', 'health_rating',
-                         'avg_salary_per_earner',
-                         'recent_rental_price', 'rank'],
+            hover_name="zip",
+            custom_data=[
+                "zip",
+                "city",
+                "state_name",
+                "population",
+                "avg_temp",
+                "health_rating",
+                "avg_salary_per_earner",
+                "recent_rental_price",
+                "rank",
+            ],
             labels={"zip": "Zip Code", "rank": "Rank"},
             color_continuous_scale=colorscale,
             template="plotly",
-            height=700
+            height=700,
         )
-            .update_traces(
-            marker={"size": df['density'], "sizemode": "area", "sizeref": 2. * max(df['density']) / (15. ** 2),
-                    "sizemin": 2},
+        .update_traces(
+            marker={
+                "size": df["density"],
+                "sizemode": "area",
+                "sizeref": 2.0 * max(df["density"]) / (15.0**2),
+                "sizemin": 2,
+            },
             hovertemplate=(
-                "<b>%{customdata[1]}</b>, %{customdata[2]}<br>"
+                "<b>%{customdata[1]}</b>, %{customdata[2]}<br><br>"
                 "Population: %{customdata[3]}<br>"
                 "Avg Temp: %{customdata[4]}°F<br>"
                 "Health Rating: %{customdata[5]}<br>"
@@ -143,9 +176,9 @@ def usMapRender(df):
                 "Rental Price: $%{customdata[7]:,.0f}<br>"
                 "Rank: %{customdata[8]}"
                 "<extra></extra>"
-            )
+            ),
         )
-            .update_layout(
+        .update_layout(
             map={
                 "style": "open-street-map",
                 "zoom": 3,
@@ -155,17 +188,15 @@ def usMapRender(df):
             annotations=[
                 dict(
                     text="<b>Click on Zip Codes for details.</b>",
-                    align='right',
+                    align="right",
                     showarrow=False,
-                    xref='paper',
-                    yref='paper',
+                    xref="paper",
+                    yref="paper",
                     x=0,
                     y=0.05,
-                    xanchor='left',
-                    yanchor='top',
-                    font=dict(
-                        size=12
-                    )
+                    xanchor="left",
+                    yanchor="top",
+                    font=dict(size=12),
                 )
             ],
             coloraxis_colorbar=dict(
@@ -178,10 +209,10 @@ def usMapRender(df):
                 y=1,
                 xanchor="left",
                 x=0.01,
-                bgcolor='rgba(255,255,255,0.85)',
-                bordercolor='Grey',
-                borderwidth=1
-            )
+                bgcolor="rgba(255,255,255,0.85)",
+                bordercolor="Grey",
+                borderwidth=1,
+            ),
         )
     )
 
@@ -210,13 +241,15 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def checkZip(zip):
-    pattern = r'^\d{5}(-\d{4})?$'
+    pattern = r"^\d{5}(-\d{4})?$"
     return bool(re.match(pattern, zip))
 
 
 def collectingLineGraphData(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv"))                 # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(
+        os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv")
+    )  # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
     m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValue"]].dropna()
@@ -225,17 +258,19 @@ def collectingLineGraphData(zip):
 
 def collectingLineGraphData_HomeValueForecast(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv"))                  # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(
+        os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv")
+    )  # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
 
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
     # m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValueForecast"]].dropna()
-    forecast_info = df.query("zipcode == @zips")[["date", 'HomeValueForecast']].dropna()
+    forecast_info = df.query("zipcode == @zips")[["date", "HomeValueForecast"]].dropna()
     if forecast_info.empty:
-        return [[], '']
+        return [[], ""]
     else:
         first_date_str = forecast_info.iloc[0]["date"]
-        time_stamp = datetime.strptime(first_date_str, '%Y-%m-%d')
+        time_stamp = datetime.strptime(first_date_str, "%Y-%m-%d")
         return [forecast_info.to_dict(orient="records")[0], time_stamp]
 
 
@@ -329,8 +364,7 @@ def calculate_top_suggestion(zipcode, radius, df_sorted):
     zip_lon = selected_row["lng"]
     df_sorted = df_sorted.copy()
     df_sorted["distance"] = df_sorted.apply(
-        lambda row: haversine(zip_lat, zip_lon, row["lat"], row["lng"]),
-        axis=1
+        lambda row: haversine(zip_lat, zip_lon, row["lat"], row["lng"]), axis=1
     )
     filtered_df = df_sorted[df_sorted["distance"] <= radius]
     return filtered_df
@@ -339,8 +373,13 @@ def calculate_top_suggestion(zipcode, radius, df_sorted):
 # 58856
 def collectingZipInformation(zip):
     zipcode = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_merged_data.csv"))                              # './data/cleaned_merged_data.csv'
-    pol_df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_2016_election_results.csv"), dtype={"ZIP": "str"})    # "./data/cleaned_2016_election_results.csv"
+    df = pd.read_csv(
+        os.path.join(DATA_DIR, "cleaned_merged_data.csv")
+    )                                                                       # './data/cleaned_merged_data.csv'
+    pol_df = pd.read_csv(
+        os.path.join(DATA_DIR, "cleaned_2016_election_results.csv"),
+        dtype={"ZIP": "str"},
+    )                                                                       # "./data/cleaned_2016_election_results.csv"
 
     info = df.query("zip == @zipcode")[
         [
@@ -365,14 +404,15 @@ def collectingZipInformation(zip):
     else:
         info_dict = info.to_dict(orient="records")[0]
         information_dict = {
-            '🏙️ City': info_dict["city"],
-            '📍 State': info_dict["state_name"],
-            '🏷️ State ID': info_dict["state_id"],
-            '👥 Population': f"{info_dict['population']:.0f}",
-            '🏘️ Population density': f"{info_dict['density']:.0f}",
+            "🏙️ City": info_dict["city"],
+            "📍 State": info_dict["state_name"],
+            "🏷️ State ID": info_dict["state_id"],
+            "👥 Population": f"{info_dict['population']:.0f}",
+            "🏘️ Population density": f"{info_dict['density']:.0f}",
             '<img src="assets/gps.png" alt="County Icon" width="14" height="14" '
-            'style="vertical-align:left; margin-left:0px;"> County':
-                info_dict["county_name"],
+            'style="vertical-align:left; margin-left:0px;"> County': info_dict[
+                "county_name"
+            ],
             """🌦️ <abbr title="Dry Conditions:
         - Very low rainfall indicates either Arid (if warm) or Dry climates (if cooler).
         - Moderate low rainfall is classified as Semi-arid climate.
@@ -385,26 +425,32 @@ def collectingZipInformation(zip):
         - Average temperatures between 45°F and 60°F are differentiated by rainfall amounts into Humid continental, Temperate marine, or Temperate climates.
 
         Warm Climates: - Temperatures above 60°F are further classified by rainfall into Mediterranean, 
-        Tropical monsoon, Humid subtropical, or Tropical rainforest climate."> Climate</abbr>""":
-                f"{classify_climate(info_dict['avg_temp'], info_dict['avg_snow'], info_dict['avg_rain'])}",
-            '🌡️ Average temperature': f"{info_dict['avg_temp']:.2f}° F",
-            '❄️ Average snowfall': f"{info_dict['avg_snow']:.2f} inch << THIS NEEDS CONFIRMATION",
-            '🌧️ Average precipitation': f"{info_dict['avg_rain']:.2f} mm << THIS NEEDS CONFIRMATION",
+        Tropical monsoon, Humid subtropical, or Tropical rainforest climate."> Climate</abbr>""": f"{classify_climate(info_dict['avg_temp'], info_dict['avg_snow'], info_dict['avg_rain'])}",
+            "🌡️ Average temperature": f"{info_dict['avg_temp']:.2f}° F",
+            "❄️ Average snowfall": f"{info_dict['avg_snow']:.2f} inch << THIS NEEDS CONFIRMATION",
+            "🌧️ Average precipitation": f"{info_dict['avg_rain']:.2f} mm << THIS NEEDS CONFIRMATION",
             '<abbr title="Assuming 2 party only"><img src="assets/usa-map.png" alt="Map Icon" width="14" height="14" '
-            'style="vertical-align:left; margin-left:0px;"> Political Affiliation</abbr>':
-                (
-                    f"Democrat: <span style='color:blue'> ~{pol_df[pol_df['ZIP'] == str(zipcode)]['dem_pct'].values[0]:.2%}</span>; "
-                    f"Republican: <span style='color:red'> ~{pol_df[pol_df['ZIP'] == str(zipcode)]['rep_pct'].values[0]:.2%}</span>"
-                    if not pol_df[pol_df['ZIP'] == str(zipcode)].empty
-                    else "Political affiliation data not available."
-                ),
+            'style="vertical-align:left; margin-left:0px;"> Political Affiliation</abbr>': (
+                f"Democrat: <span style='color:blue'> ~{pol_df[pol_df['ZIP'] == str(zipcode)]['dem_pct'].values[0]:.2%}</span>; "
+                f"Republican: <span style='color:red'> ~{pol_df[pol_df['ZIP'] == str(zipcode)]['rep_pct'].values[0]:.2%}</span>"
+                if not pol_df[pol_df["ZIP"] == str(zipcode)].empty
+                else "Political affiliation data not available."
+            ),
             # '<img src="assets/volatility.png" alt="Map Icon" width="14" height="14" '
             # 'style="vertical-align:left; margin-left:0px;"> Political Affiliation Volatility':
             #     f"{info_dict['dem_lead_std']:.2f} << THIS NEEDS EXPLANATION",
-            '🎓 Post-secondary institutions': info_dict['num_postsecondary_institutions'],
-            '🩺 Health rating': f"{info_dict['health_rating']} << THIS NEEDS EXPLANATION",
-            '💰 Average salary/earner': f"{info_dict['avg_salary_per_earner']:,.0f}K",
-            f'🧭 Zip codes in the county ({len(df.query("""county_name == @info_dict["county_name"]""")["zip"].unique())})':
-                ", ".join([str(x) for x in df.query("""county_name == @info_dict["county_name"]""")["zip"].unique()])
+            "🎓 Post-secondary institutions": info_dict[
+                "num_postsecondary_institutions"
+            ],
+            "🩺 Health rating": f"{info_dict['health_rating']} << THIS NEEDS EXPLANATION",
+            "💰 Average salary/earner": f"{info_dict['avg_salary_per_earner']:,.0f}K",
+            f'🧭 Zip codes in the county ({len(df.query("""county_name == @info_dict["county_name"]""")["zip"].unique())})': ", ".join(
+                [
+                    str(x)
+                    for x in df.query("""county_name == @info_dict["county_name"]""")[
+                        "zip"
+                    ].unique()
+                ]
+            ),
         }
         return information_dict

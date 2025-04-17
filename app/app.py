@@ -334,31 +334,9 @@ def server(input, output, session):
 
         zip_code = selected_zip.get()  # Get stored zip code
         recommend_data = predict_from_user_preference(preferences, weights)
-        # recomendation.set(recommend_data)
         backupRecommendation.set(recommend_data)
         print(recommend_data)
         print("##############################")
-        # Compute a base score as a weighted sum of the factors.
-        # df["base_score"] = (weights['w_climate'] * df["income"] +
-        #                     weights['w_education'] * df["cost_of_living"] +
-        #                     weights['w_health'] * df["crime_rate"] +
-        #                     weights['w_cost'] * df["job_opportunities"] +
-        #                     weights['w_density'] * df["climate"])
-
-        # Adjust scores based on proximity if a valid zip code is entered.
-        # zip_code = input.zip_code().strip()
-        # if zip_code in zip_lookup:
-        #     zip_lat = zip_lookup[zip_code]["lat"]
-        #     zip_lon = zip_lookup[zip_code]["lon"]
-        #     multipliers = []
-        #     for idx, row in df.iterrows():
-        #         distance = haversine(zip_lat, zip_lon, row["lat"], row["lon"])
-        #         multiplier = math.exp(-distance / 500)  # exponential decay
-        #         multipliers.append(multiplier)
-        #     df["proximity_multiplier"] = multipliers
-        #     df["final_score"] = df["base_score"] * (1 + df["proximity_multiplier"])
-        # else:
-        #     df["final_score"] = df["base_score"]
         computed_scores.set(recommend_data.copy())
         print("Final computed scores stored successfully!")
 
@@ -366,9 +344,6 @@ def server(input, output, session):
     @render_widget
     def us_map():
         scored_df = computed_scores.get()
-        # # placeholder
-        # scored_df = pd.read_csv("./ml/ml_pred_sample.csv",
-        #                         dtype={"zip": "str"})  # <<< placeholder; will be replaced by ml predictions
         if scored_df is None or scored_df.empty:
             # Return a minimal empty figure instead of None
             empty_fig = go.Figure()
