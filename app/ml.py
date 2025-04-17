@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import math
 from sklearn.preprocessing import StandardScaler
+import os
+
+BASE_DIR = os.path.dirname(__file__)            # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")       # /cloud/project/app/data
 
 # functions
 def hello():

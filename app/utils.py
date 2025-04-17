@@ -5,7 +5,10 @@ from datetime import datetime
 import geopandas as gpd
 import json
 import plotly.express as px
+import os
 
+BASE_DIR = os.path.dirname(__file__)            # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")       # /cloud/project/app/data
 
 def usMapRender(df):
     with open("./data/us-states.json", "r") as f:
