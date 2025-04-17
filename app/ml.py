@@ -33,7 +33,9 @@ def no_preference(series):
     return series.abs() * 0
 
 
-def predict_from_user_preference(preferences,weights,data_path: str = './data/cleaned_merged_data.csv') -> pd.DataFrame:
+def predict_from_user_preference(preferences, 
+                                 weights, 
+                                 data_path: str = os.path.join(DATA_DIR, "cleaned_merged_data.csv")) -> pd.DataFrame: # './data/cleaned_merged_data.csv'
     """
     - Raw predictors are averaged within clusters and rescaled/standardized
     - Data is transformed based on user preferences (e.g., if user wants cold weather, avg_temp is multiplied by -1 to reverse the scale)
