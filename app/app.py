@@ -14,11 +14,17 @@ from .utils import (
     haversine, 
     calculate_top_suggestion
 )
+from .ml import hello
+
+print(hello())
 
 import os
 from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
 os.makedirs(assets_path, exist_ok=True)
+
+BASE_DIR = os.path.dirname(__file__)        # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")  # /cloud/project/app/data
 
 # ----------------------------
 # Sample Data for 10 States
@@ -54,7 +60,7 @@ df = pd.DataFrame(data)
 # Zip Code Lookup
 # ----------------------------
 zip_lookup = (
-    pd.read_csv("./data/zipcodes_clean.csv", dtype={"zip": "str"})
+    pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"), dtype={"zip": "str"})
         .rename(columns={"lng": "lon"})[["zip", "lat", "lon"]]
         .set_index("zip")
         .to_dict(orient="index")

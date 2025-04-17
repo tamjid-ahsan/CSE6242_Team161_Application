@@ -4,6 +4,9 @@ import math
 from sklearn.preprocessing import StandardScaler
 
 # functions
+def hello():
+    return "Hello World"
+
 def custom_rescale(series, new_max = 5):
     abs_values = series.abs()
     signs = np.sign(series)
