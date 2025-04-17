@@ -5,3 +5,7 @@ matplotlib
 scipy
 pandas
 requests
+shinywidgets
+anywidget
+geopandas
+scikit-learn
