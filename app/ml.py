@@ -4,8 +4,8 @@ import math
 from sklearn.preprocessing import StandardScaler
 import os
 
-BASE_DIR = os.path.dirname(__file__)  # /cloud/project/app
-DATA_DIR = os.path.join(BASE_DIR, "data")  # /cloud/project/app/data
+BASE_DIR = os.path.dirname(__file__)            # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")       # /cloud/project/app/data
 
 
 # functions
@@ -39,7 +39,7 @@ def predict_from_user_preference(
     preferences,
     weights,
     data_path: str = os.path.join(DATA_DIR, "cleaned_merged_data.csv"),
-) -> pd.DataFrame:  # './data/cleaned_merged_data.csv'
+) -> pd.DataFrame:                              # './data/cleaned_merged_data.csv'
     """
     - Raw predictors are averaged within clusters and rescaled/standardized
     - Data is transformed based on user preferences (e.g., if user wants cold weather, avg_temp is multiplied by -1 to reverse the scale)
@@ -110,7 +110,6 @@ def predict_from_user_preference(
     selected_preferences = preferences
 
     selected_weights = weights
-    # -----------------------------------------------------------------------------------------------
 
     # match transformation based on which answer is selected
     value_mappings = {1: prefer_moderate, 2: prefer_low, 3: no_preference}

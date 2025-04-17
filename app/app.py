@@ -14,10 +14,7 @@ from .utils import (
     haversine, 
     calculate_top_suggestion
 )
-from .ml import hello, predict_from_user_preference
-
-print(hello())
-
+from .ml import predict_from_user_preference
 import os
 from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
@@ -227,9 +224,9 @@ app_ui = ui.page_fluid(
     }
         """)
     ),
-    # ui.head(
-    #     ui.tags.link(rel="shortcut icon", href="favicon.ico")
-    # ),
+    ui.head(
+        ui.tags.link(rel="shortcut icon", href="favicon.ico")
+    ),
     # Header
     ui.div(
         ui.h2("US Relocation Recommendation Tool", class_="mb-0"),
@@ -560,7 +557,7 @@ def server(input, output, session):
             return None
         else:
             return ui.div(
-                ui.h4("Comparison Metrics", class_="mb-3"),
+                ui.h4("Comparison Metrics - Housing", class_="mb-3"),
                 ui.output_ui("line_chart"),
                 class_="card"
             )
@@ -582,7 +579,7 @@ def server(input, output, session):
     @render.ui
     def info_label_ui():
         if map_rendered.get():
-            return ui.div(ui.p("Useful information, user guidance"), id="info_label")
+            return ui.div(ui.p("Zoom using ➕/➖ or your scroll wheel, click ZIP codes for more info, and enter a ZIP plus set distance to limit your search radius."), id="info_label")
         else:
             return ui.div(id="info_label", style="display: none;")
 
@@ -934,7 +931,7 @@ def server(input, output, session):
                                 font-size: 16px;
                                 margin: 10px 0;
                             ">
-                                <strong>Error:</strong> The ZIP code entered is not available.
+                                <strong>Housing Data Unavailable:</strong> do not have housing information for this ZIP code.
                             </div>
                         """)
 
@@ -1032,7 +1029,7 @@ def server(input, output, session):
                     )
                     print(f"Generated HTML content, size: {len(html_content)}")
 
-                    if len(html_content) > 5000000:  # 5MB limit - reduced from previous
+                    if len(html_content) > 5000000: # 5MB limit
                         print(f"HTML content too large: {len(html_content)} bytes")
                         return ui.HTML("""
                                     <div style="
