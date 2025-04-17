@@ -14,7 +14,7 @@ from .utils import (
     haversine, 
     calculate_top_suggestion
 )
-from .ml import hello
+from .ml import hello, predict_from_user_preference
 
 print(hello())
 
