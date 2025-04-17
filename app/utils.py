@@ -18,7 +18,7 @@ def usMapRender(df):
         us_counties = json.load(f)
 
     with open(os.path.join(DATA_DIR, "zip_codes.geojson"), "r") as f:               # "./data/zip_codes.geojson"
-        us_zip = json.load(f)
+        us_zip_full = json.load(f)
 
     # Filter zip codes to only those in the dataframe
     # Convert df zip codes to a set for faster lookup
