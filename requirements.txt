@@ -1,4 +1,6 @@
 ipywidgets
+shinywidgets
+anywidget
 shiny
 plotly
 matplotlib
@@ -6,7 +8,5 @@ scipy
 pandas
 numpy
 requests
-shinywidgets
-anywidget
 geopandas
 scikit-learn
