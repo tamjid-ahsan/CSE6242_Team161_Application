@@ -104,6 +104,31 @@ app_ui = ui.page_fluid(
                 margin-bottom: 20px;
                 transition: transform 0.2s;
             }
+            .filter-container {
+    height: calc(100vh - 150px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: sticky;
+    top: 20px;
+    scrollbar-width: thin;
+}
+.filter-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filter-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.filter-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.filter-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
 
             .card:hover {
                 transform: translateY(-2px);
@@ -142,6 +167,19 @@ app_ui = ui.page_fluid(
             .preference-slider .irs-handle {
                 border-color: var(--primary-color);
             }
+            .preference-select select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    width: 100%;
+    font-size: 14px;
+}
+
+.preference-select select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
 
             #plot-container {
                 position: relative;
@@ -182,6 +220,11 @@ app_ui = ui.page_fluid(
                 margin-top: -8px;
                 margin-bottom: 12px;
             }
+            @media (max-width: 768px) {
+    .filter-container {
+        height: 500px;
+        position: relative;
+    }
         """)
     ),
     # ui.head(
@@ -236,9 +279,13 @@ def server(input, output, session):
     # Store inputs when submit is clicked
     selected_zip = reactive.Value("")
     selected_weights = reactive.Value({})
+    selected_preference = reactive.Value({})
     computed_scores = reactive.Value(None)
     search_radius = reactive.Value("all")
     zoomed_figure = reactive.Value(None)
+    map_rendered = reactive.Value(False)
+    # recomendation= reactive.Value(None)
+    backupRecommendation = reactive.Value(None)
 
     @reactive.effect
     @reactive.event(input.submit)
@@ -248,11 +295,23 @@ def server(input, output, session):
         # Update stored values when Submit is clicked
         selected_zip.set(input.zip_code().strip())  # Store entered zip code
         selected_weights.set({
-            "w_income": input.weight_income(),
-            "w_cost": input.weight_cost(),
-            "w_crime": input.weight_crime(),
-            "w_job": input.weight_job(),
-            "w_climate": input.weight_climate()
+            "w_climate": input.w_climate(),
+            "w_education": input.w_education(),
+            "w_health": input.w_health(),
+            "w_cost": input.w_cost(),
+            "w_politics": input.w_politics(),
+            "w_density": input.w_density(),
+        })
+        selected_preference.set({
+            "p_temp": input.p_temp(),
+            "p_rain": input.p_rain(),
+            "p_snow": input.p_snow(),
+            "p_education": input.p_education(),
+            "p_health": input.p_health(),
+            "p_income": input.p_income(),
+            "p_housing": input.p_housing(),
+            "p_politics": input.p_politics(),
+            "p_density": input.p_density(),
         })
         compute_scores()
 
@@ -268,39 +327,48 @@ def server(input, output, session):
 
         # Compute scores only when submit is clicked
         weights = selected_weights.get()  # Get stored weights
-        zip_code = selected_zip.get()  # Get stored zip code
+        preferences = selected_preference.get()
+        print("##############################")
+        print(weights)
+        print(preferences)
 
+        zip_code = selected_zip.get()  # Get stored zip code
+        recommend_data = predict_from_user_preference(preferences, weights)
+        # recomendation.set(recommend_data)
+        backupRecommendation.set(recommend_data)
+        print(recommend_data)
+        print("##############################")
         # Compute a base score as a weighted sum of the factors.
-        df["base_score"] = (weights['w_income'] * df["income"] +
-                            weights['w_cost'] * df["cost_of_living"] +
-                            weights['w_crime'] * df["crime_rate"] +
-                            weights['w_job'] * df["job_opportunities"] +
-                            weights['w_climate'] * df["climate"])
+        # df["base_score"] = (weights['w_climate'] * df["income"] +
+        #                     weights['w_education'] * df["cost_of_living"] +
+        #                     weights['w_health'] * df["crime_rate"] +
+        #                     weights['w_cost'] * df["job_opportunities"] +
+        #                     weights['w_density'] * df["climate"])
 
         # Adjust scores based on proximity if a valid zip code is entered.
         # zip_code = input.zip_code().strip()
-        if zip_code in zip_lookup:
-            zip_lat = zip_lookup[zip_code]["lat"]
-            zip_lon = zip_lookup[zip_code]["lon"]
-            multipliers = []
-            for idx, row in df.iterrows():
-                distance = haversine(zip_lat, zip_lon, row["lat"], row["lon"])
-                multiplier = math.exp(-distance / 500)  # exponential decay
-                multipliers.append(multiplier)
-            df["proximity_multiplier"] = multipliers
-            df["final_score"] = df["base_score"] * (1 + df["proximity_multiplier"])
-        else:
-            df["final_score"] = df["base_score"]
-        computed_scores.set(df.copy())
+        # if zip_code in zip_lookup:
+        #     zip_lat = zip_lookup[zip_code]["lat"]
+        #     zip_lon = zip_lookup[zip_code]["lon"]
+        #     multipliers = []
+        #     for idx, row in df.iterrows():
+        #         distance = haversine(zip_lat, zip_lon, row["lat"], row["lon"])
+        #         multiplier = math.exp(-distance / 500)  # exponential decay
+        #         multipliers.append(multiplier)
+        #     df["proximity_multiplier"] = multipliers
+        #     df["final_score"] = df["base_score"] * (1 + df["proximity_multiplier"])
+        # else:
+        #     df["final_score"] = df["base_score"]
+        computed_scores.set(recommend_data.copy())
         print("Final computed scores stored successfully!")
 
     @output
     @render_widget
     def us_map():
         scored_df = computed_scores.get()
-        ## placeholder
-        scored_df = pd.read_csv(os.path.join(DATA_DIR, "sample_ML.csv"),
-                                dtype={"zip": "str"})  # <<< placeholder; will be replaced by ml predictions
+        # # placeholder
+        # scored_df = pd.read_csv("./ml/ml_pred_sample.csv",
+        #                         dtype={"zip": "str"})  # <<< placeholder; will be replaced by ml predictions
         if scored_df is None or scored_df.empty:
             # Return a minimal empty figure instead of None
             empty_fig = go.Figure()
@@ -313,6 +381,7 @@ def server(input, output, session):
                     x=0.5, y=0.5, showarrow=False
                 )]
             )
+            map_rendered.set(False)
             return go.FigureWidget(empty_fig)
 
         # Use withProgress to give the widget time to render
@@ -378,39 +447,13 @@ def server(input, output, session):
 
                     threading.Timer(0.1, reset_flag).start()
 
-                # def handle_hover(trace, points, selector):
-                #     print("Hovering")
-                #     # If there are no points in this trace, ignore it
-                #     if not points.point_inds:
-                #         return
-                #     idx = points.point_inds[0]
-                #     lat = trace.lat[idx]
-                #     lon = trace.lon[idx]
-                #     print(trace)
-                #     zoom_fig = px.scatter_geo(
-                #         pd.DataFrame([{"lat": lat, "lon": lon}]),
-                #         lat="lat",
-                #         lon="lon",
-                #         opacity=0.6
-                #     )
-                #     zoom_fig.update_geos(
-                #         center={"lat": lat, "lon": lon},
-                #         projection_scale=10,
-                #         visible=False,
-                #     )
-                #     zoom_fig.update_layout(
-                #         margin=dict(l=0, r=0, t=0, b=0),
-                #         height=250,
-                #     )
-                #
-                #     zoomed_figure.set(zoom_fig)
-
                 # Attach to all traces
                 for i, trace in enumerate(widget.data):
                     trace.on_click(handle_click)
                     # trace.on_hover(handle_hover)
 
                 p.set(1.0, message="Complete")
+                map_rendered.set(True)
                 return widget
 
             except Exception as e:
@@ -430,6 +473,13 @@ def server(input, output, session):
     @reactive.effect
     def monitor_us_map_click():
         print(f"us_map_click changed: {input['us_map_click']}")
+
+    @render.ui
+    def info_label_ui():
+        if map_rendered.get():
+            return ui.div(ui.p("Ok"), id="info_label")
+        else:
+            return ui.div(id="info_label", style="display: none;")
 
     @output
     @render_widget
@@ -470,16 +520,42 @@ def server(input, output, session):
 
     def calculate_suggestion_based_zipcode():
         if search_radius.get() == '100':
-            calculate_top_suggestion(selected_zip.get(), 100)
+            computed_scores.set(calculate_top_suggestion(selected_zip.get(), 100, backupRecommendation.get()))
         elif search_radius.get() == '1000':
-            calculate_top_suggestion(selected_zip.get(), 1000)
+            computed_scores.set(calculate_top_suggestion(selected_zip.get(), 1000, backupRecommendation.get()))
+        else:
+            computed_scores.set(backupRecommendation.get())
 
     @output
     @render.ui
     def map_container():
         scored_df = computed_scores.get()
-        if scored_df is None or scored_df.empty:
-            return None
+        print(scored_df)
+        if (scored_df is None or scored_df.empty) and (selected_zip.get() and checkZip(selected_zip.get())):
+            return ui.div(
+                ui.HTML("""
+                            <div style="
+                                background-color: #f8d7da;
+                                color: #721c24;
+                                padding: 15px;
+                                border: 1px solid #f5c6cb;
+                                border-radius: 5px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                margin: 10px 0;
+                            ">
+                                <strong>Notice:</strong> No recommendations found within the selected radius.
+                            </div>
+                        """),
+                ui.div(
+                    ui.output_ui("search_radius_control"),
+                    class_="search-radius-control"
+                ),
+                class_="card map"
+            )
+        elif scored_df is None or scored_df.empty:
+            return
         else:
             return ui.div(
                 ui.h4("Location Recommendations", class_="mb-3"),
@@ -487,6 +563,9 @@ def server(input, output, session):
                     output_widget("us_map"),
                     id="plot-container",
                     class_="mb-3"
+                ),
+                ui.div(
+                    ui.output_ui("info_label_ui"),
                 ),
                 ui.div(
                     ui.output_ui("search_radius_control"),
@@ -525,76 +604,23 @@ def server(input, output, session):
                 class_="card info-box"
             )
 
+    @render.ui
+    def info_label_ui():
+        if map_rendered.get():
+            return ui.div(ui.p("Ok"), id="info_label")
+        else:
+            return ui.div(id="info_label", style="display: none;")
+
     @output
     @render.ui
     def filter_container():
         return ui.div(
             ui.h4("Your Preferences", class_="mb-4"),
-
+            # ui.p("Set importance weights for each factor (total: 100%)", class_="weight-description"),
             ui.div(
-                ui.input_text(
-                    "zip_code",
-                    "Current ZIP Code",
-                    placeholder="e.g., 10001",
-                    width="100%"
-                ),
-                class_="mb-4"
-            ),
-
-            ui.p("Set importance weights for each factor (total: 100%)", class_="weight-description"),
-
-            ui.div(
-                ui.div(ui.strong("Income", class_="input-label")),
+                ui.div(ui.strong("What kind of weather do you prefer?", class_="input-label")),
                 ui.input_slider(
-                    "weight_income",
-                    "",
-                    0, 1, 0.2,
-                    step=0.1,
-                    width="100%"
-                ),
-                class_="preference-slider"
-            ),
-
-            ui.div(
-                ui.div(ui.strong("Cost of Living", class_="input-label")),
-                ui.input_slider(
-                    "weight_cost",
-                    "",
-                    0, 1, 0.2,
-                    step=0.1,
-                    width="100%"
-                ),
-                class_="preference-slider"
-            ),
-
-            ui.div(
-                ui.div(ui.strong("Safety", class_="input-label")),
-                ui.input_slider(
-                    "weight_crime",
-                    "",
-                    0, 1, 0.2,
-                    step=0.1,
-                    width="100%"
-                ),
-                class_="preference-slider"
-            ),
-
-            ui.div(
-                ui.div(ui.strong("Job Opportunities", class_="input-label")),
-                ui.input_slider(
-                    "weight_job",
-                    "",
-                    0, 1, 0.2,
-                    step=0.1,
-                    width="100%"
-                ),
-                class_="preference-slider"
-            ),
-
-            ui.div(
-                ui.div(ui.strong("Climate", class_="input-label")),
-                ui.input_slider(
-                    "weight_climate",
+                    "w_climate",
                     "",
                     0, 1, 0.2,
                     step=0.1,
@@ -602,27 +628,262 @@ def server(input, output, session):
                 ),
                 class_="preference-slider mb-4"
             ),
-
+            ui.div(
+                ui.div(ui.strong("What kind of weather do you prefer?", class_="input-label")),
+                ui.input_select(
+                    "p_temp",
+                    "",
+                    choices={
+                        "0": "I love warm, sunny weather",
+                        "1": "I enjoy a nice balance — not too hot, not too cold",
+                        "2": "I prefer cooler temperatures and winter vibes",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How do you feel about rain?", class_="input-label")),
+                ui.input_select(
+                    "p_rain",
+                    "",
+                    choices={
+                        "0": "I like places with lots of rain",
+                        "1": "A little rain here and there is fine",
+                        "2": "I'd rather avoid rainy weather",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How do you feel about snow?", class_="input-label")),
+                ui.input_select(
+                    "p_snow",
+                    "",
+                    choices={
+                        "0": "I'd be happy with year-round winters",
+                        "1": "I enjoy a snow day here and there",
+                        "2": "I'd rather live somewhere snow-free",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How important are education factors when deciding where to move?",
+                                 class_="input-label")),
+                ui.input_slider(
+                    "w_education",
+                    "",
+                    0, 1, 0.2,
+                    step=0.1,
+                    width="100%"
+                ),
+                class_="preference-slider"
+            ),
+            ui.div(
+                ui.div(ui.strong("Are you planning to study or work in education?", class_="input-label")),
+                ui.input_select(
+                    "p_education",
+                    "",
+                    choices={
+                        "0": "Yes - I'd like to live in or near a college town",
+                        "1": "No - I'd rather avoid areas centered around colleges",
+                        "2": "No preference"
+                    },
+                    selected="2",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(
+                    ui.strong("How important are health factors when deciding where to move?", class_="input-label")),
+                ui.input_slider(
+                    "w_health",
+                    "",
+                    0, 1, 0.2,
+                    step=0.1,
+                    width="100%"
+                ),
+                class_="preference-slider"
+            ),
+            ui.div(
+                ui.div(ui.strong("How important is community health and wellness to you?", class_="input-label")),
+                ui.input_select(
+                    "p_health",
+                    "",
+                    choices={
+                        "0": "Very important - I want to be in a health-conscious place",
+                        "1": "I'm not into overly health-focused communities",
+                        "2": "No preference"
+                    },
+                    selected="2",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How important is cost of living when deciding where to move?", class_="input-label")),
+                ui.input_slider(
+                    "w_cost",
+                    "",
+                    0, 1, 0.2,
+                    step=0.1,
+                    width="100%"
+                ),
+                class_="preference-slider"
+            ),
+            ui.div(
+                ui.div(ui.strong("What kind of cost of living fits your lifestyle?", class_="input-label")),
+                ui.input_select(
+                    "p_income",
+                    "",
+                    choices={
+                        "0": "I'm okay with a higher cost if it comes with quality",
+                        "1": "I'd like a good balance — not too cheap, not too pricey",
+                        "2": "I want to keep expenses low and stretch my budget",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How do you feel about housing affordability?", class_="input-label")),
+                ui.input_select(
+                    "p_housing",
+                    "",
+                    choices={
+                        "0": "I'll pay more for the perfect place in the right location",
+                        "1": "I want something nice, but within a reasonable budget",
+                        "2": "I want affordable housing to save more",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong("How important are politics when deciding where to move?", class_="input-label")),
+                ui.input_slider(
+                    "w_politics",
+                    "",
+                    0, 1, 0.2,
+                    step=0.1,
+                    width="100%"
+                ),
+                class_="preference-slider"
+            ),
+            ui.div(
+                ui.div(ui.strong("How would you want your community to lean politically?", class_="input-label")),
+                ui.input_select(
+                    "p_politics",
+                    "",
+                    choices={
+                        "0": "I'd prefer a more liberal or progressive area",
+                        "1": "I'd like to live somewhere with a mix of political affiliations",
+                        "2": "I'd prefer a more conservative community",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.div(ui.strong(
+                    "How important is living environment (urban, suburban, rural) when deciding where to move?",
+                    class_="input-label")),
+                ui.input_slider(
+                    "w_density",
+                    "",
+                    0, 1, 0.2,
+                    step=0.1,
+                    width="100%"
+                ),
+                class_="preference-slider"
+            ),
+            ui.div(
+                ui.div(ui.strong("What kind of area do you want to live in?", class_="input-label")),
+                ui.input_select(
+                    "p_density",
+                    "",
+                    choices={
+                        "0": "I want the energy and convenience of a city",
+                        "1": "I'd prefer a smaller city or town with plenty to do but not too many people",
+                        "2": "I want a quieter, nature-focused lifestyle",
+                        "3": "No preference"
+                    },
+                    selected="3",
+                    width="100%"
+                ),
+                class_="preference-select mb-4"
+            ),
+            ui.div(
+                ui.input_text(
+                    "zip_code",
+                    ui.div(ui.strong("Current ZIP Code", class_="input-label")),
+                    placeholder="e.g., 10001",
+                    width="100%"
+                ),
+                class_="mb-4"
+            ),
             ui.input_action_button(
                 "submit",
                 "Find My Ideal Locations",
                 class_="btn-primary btn-lg w-100"
             ),
-
-            class_="card"
+            class_="card filter-container"
         )
 
     @output
     @render.ui
     def line_chart():
-        if computed_scores.get() is None:
-            empty_fig = go.Figure()
-            return ui.HTML(empty_fig.to_html(include_plotlyjs="cdn", full_html=True))
-            # return ui.HTML("<p>Please click Submit to view trends.</p>")
-        if selected_zip.get() is '':
-            return None
-        if not checkZip(selected_zip.get()):
-            return ui.HTML("""
+        try:
+            print("Starting line_chart function")
+
+            if computed_scores.get() is None:
+                empty_fig = go.Figure()
+                print("Returning empty figure")
+                return ui.HTML(empty_fig.to_html(include_plotlyjs="cdn", full_html=True))
+
+            if selected_zip.get() == '':
+                print("No ZIP code selected")
+                return None
+
+            if not checkZip(selected_zip.get()):
+                print(f"Invalid ZIP code: {selected_zip.get()}")
+                return ui.HTML("""
+                            <div style="
+                                background-color: #f8d7da;
+                                color: #721c24;
+                                padding: 15px;
+                                border: 1px solid #f5c6cb;
+                                border-radius: 5px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                margin: 10px 0;
+                            ">
+                                <strong>Error:</strong> The ZIP code entered is not valid. Please enter a valid 5-digit  
+                                ZIP code.
+                            </div>
+                        """)
+
+            print(f"Collecting data for ZIP: {selected_zip.get()}")
+
+            # Pre-create a response for timeout or other issues
+            error_response = ui.HTML("""
                         <div style="
                             background-color: #f8d7da;
                             color: #721c24;
@@ -634,118 +895,364 @@ def server(input, output, session):
                             font-size: 16px;
                             margin: 10px 0;
                         ">
-                            <strong>Error:</strong> The ZIP code entered is not valid. Please enter a valid 5-digit  
-                            ZIP code.
+                            <strong>Error:</strong> Data processing took too long or encountered an error. 
+                            Please try again with a different ZIP code.
                         </div>
                     """)
-        # Generate time series data
-        df_trends = collectingLineGraphData(selected_zip.get())
-        HomeValueForecast = collectingLineGraphData_HomeValueForecast(selected_zip.get())
 
-        if (
-                isinstance(HomeValueForecast, list)
-                and len(HomeValueForecast) == 2
-                and isinstance(HomeValueForecast[0], list)
-                and len(HomeValueForecast[0]) > 0
-                and isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))
-        ):
-            forcast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, {HomeValueForecast[1].strftime('%Y')})"""
-        else:
-            forcast = ""
+            # Collect data directly with better error handling
+            try:
+                print("Starting data collection")
+                df_trends = collectingLineGraphData(selected_zip.get())
+                print(f"Collected line graph data, rows: {len(df_trends) if not df_trends.empty else 0}")
 
-        if df_trends.empty:
-            return ui.HTML("""
+                HomeValueForecast = collectingLineGraphData_HomeValueForecast(selected_zip.get())
+                print("Collected home value forecast data")
+            except Exception as e:
+                print(f"Error during data collection: {e}")
+                return ui.HTML(f"""
+                            <div style="
+                                background-color: #f8d7da;
+                                color: #721c24;
+                                padding: 15px;
+                                border: 1px solid #f5c6cb;
+                                border-radius: 5px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                margin: 10px 0;
+                            ">
+                                <strong>Error:</strong> Failed to collect data for ZIP code {selected_zip.get()}.
+                                Details: {str(e)}
+                            </div>
+                        """)
+
+            # Handle forecast display with proper error checking
+            forecast = ""
+            try:
+                print("Processing forecast data")
+                if (isinstance(HomeValueForecast, list) and
+                        len(HomeValueForecast) == 2 and
+                        isinstance(HomeValueForecast[0], list) and
+                        len(HomeValueForecast[0]) > 0 and
+                        isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))):
+                    forecast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]
+                    ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, 
+                    {HomeValueForecast[1].strftime('%Y')})"""
+                    print("Generated forecast text")
+            except Exception as e:
+                print(f"Error formatting forecast: {e}")
+                # Continue without the forecast
+
+            # Check if data is available
+            if df_trends.empty:
+                print("Empty dataframe returned")
+                return ui.HTML("""
+                            <div style="
+                                background-color: #f8d7da;
+                                color: #721c24;
+                                padding: 15px;
+                                border: 1px solid #f5c6cb;
+                                border-radius: 5px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                margin: 10px 0;
+                            ">
+                                <strong>Error:</strong> The ZIP code entered is not available.
+                            </div>
+                        """)
+
+            # If df_trends is very large, sample it to reduce memory usage
+            if len(df_trends) > 5000:
+                print(f"Sampling large dataset: {len(df_trends)} records")
+                df_trends = df_trends.sample(n=5000).sort_values('date')
+
+            try:
+                print("Creating plotly figure")
+                # Create figure with secondary y-axis
+                fig = make_subplots(specs=[[{"secondary_y": True}]])
+                print("Created subplot")
+
+                # Add Rentals to the primary y-axis
+                fig.add_trace(
+                    go.Scatter(x=df_trends['date'], y=df_trends['Rentals'], name="Rentals", mode='lines+markers'),
+                    secondary_y=False,
+                )
+                print("Added rentals trace")
+
+                # Add HomeValue to the secondary y-axis
+                fig.add_trace(
+                    go.Scatter(x=df_trends['date'], y=df_trends['HomeValue'], name="Home Value", mode='lines+markers'),
+                    secondary_y=True,
+                )
+                print("Added home value trace")
+
+                # Add figure title and subtitle using annotations - create simpler layout first
+                fig.update_layout(
+                    template='seaborn',
+                    title_text=f"Rentals vs Home Value Over Time for: {selected_zip.get()}",
+                    margin=dict(t=100),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.2,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                print("Updated basic layout")
+
+                # Add annotations separately to isolate potential issues
+                try:
+                    fig.update_layout(
+                        annotations=[
+                            dict(
+                                x=.95,
+                                y=1.08,
+                                xref='paper',
+                                yref='paper',
+                                text=forecast,
+                                showarrow=False,
+                                font=dict(
+                                    size=12,
+                                    color="grey"
+                                ),
+                                align='center'
+                            ),
+                            dict(
+                                x=0,
+                                y=-0.3,
+                                xref='paper',
+                                yref='paper',
+                                text="* Rentals & Home Value are on different scale",
+                                showarrow=False,
+                                font=dict(
+                                    size=12,
+                                    color="black"
+                                ),
+                                align='center'
+                            )
+                        ]
+                    )
+                    print("Added annotations to figure")
+                except Exception as e:
+                    print(f"Error adding annotations: {e}")
+                    # Continue without annotations
+
+                # Set axes titles
+                fig.update_xaxes(title_text="Date")
+                fig.update_yaxes(title_text="Rentals", secondary_y=False)
+                fig.update_yaxes(title_text="Home Value", secondary_y=True)
+                print("Updated axes")
+
+                print("Converting to HTML")
+                # Generate HTML with size limit
+                try:
+                    # Use lower quality settings for plotly to reduce HTML size
+                    html_content = fig.to_html(
+                        include_plotlyjs="cdn",
+                        full_html=True,
+                        config={'responsive': True, 'displayModeBar': False}
+                    )
+                    print(f"Generated HTML content, size: {len(html_content)}")
+
+                    if len(html_content) > 5000000:  # 5MB limit - reduced from previous
+                        print(f"HTML content too large: {len(html_content)} bytes")
+                        return ui.HTML("""
                                     <div style="
-                                        background-color: #f8d7da;
-                                        color: #721c24;
+                                        background-color: #fff3cd;
+                                        color: #856404;
                                         padding: 15px;
-                                        border: 1px solid #f5c6cb;
+                                        border: 1px solid #ffeeba;
                                         border-radius: 5px;
                                         text-align: center;
                                         font-family: Arial, sans-serif;
                                         font-size: 16px;
                                         margin: 10px 0;
                                     ">
-                                        <strong>Error:</strong> The ZIP code entered is not available.
+                                        <strong>Warning:</strong> Chart is too large to display. 
+                                        Please try with a different ZIP code or date range.
                                     </div>
                                 """)
-        else:
-            # Create figure with secondary y-axis
-            fig = make_subplots(specs=[[{"secondary_y": True}]])
 
-            # Add Rentals to the primary y-axis
-            fig.add_trace(
-                go.Scatter(x=df_trends['date'], y=df_trends['Rentals'], name="Rentals", mode='lines+markers'),
-                secondary_y=False,
-            )
+                    print("Completed the line chart Now It will return")
+                    return ui.HTML(html_content)
+                except Exception as e:
+                    print(f"Error generating HTML: {e}")
+                    return error_response
 
-            # Add HomeValue to the secondary y-axis
-            fig.add_trace(
-                go.Scatter(x=df_trends['date'], y=df_trends['HomeValue'], name="Home Value", mode='lines+markers'),
-                secondary_y=True,
-            )
+            except Exception as e:
+                print(f"Error creating chart: {e}")
+                return ui.HTML(f"""
+                            <div style="
+                                background-color: #f8d7da;
+                                color: #721c24;
+                                padding: 15px;
+                                border: 1px solid #f5c6cb;
+                                border-radius: 5px;
+                                text-align: center;
+                                font-family: Arial, sans-serif;
+                                font-size: 16px;
+                                margin: 10px 0;
+                            ">
+                                <strong>Error:</strong> Failed to create chart. Details: {str(e)}
+                            </div>
+                        """)
 
-            # Add figure title and subtitle using annotations
-            fig.update_layout(
-                template='seaborn',
-                title_text=f"""<b>Rentals vs Home Value</b> Over Time for: <span style="color:#B3A369; 
-                font-weight:bold">{selected_zip.get()}</span>""",
-                annotations=[
-                    dict(
-                        x=.95,
-                        y=1.08,
-                        xref='paper',
-                        yref='paper',
-                        text=forcast,
-                        # text=f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][
-                        # 'HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')},
-                        # {HomeValueForecast[1].strftime('%Y')})""",
-                        showarrow=False,
-                        font=dict(
-                            size=12,
-                            color="grey"
-                        ),
-                        align='center'
-                    ),
-                    dict(
-                        x=0,
-                        y=-0.3,
-                        xref='paper',
-                        yref='paper',
-                        text="* Rentals & Home Value are on different scale",
-                        showarrow=False,
-                        font=dict(
-                            size=12,
-                            color="black"
-                        ),
-                        align='center'
-                    )
-                ],
-                margin=dict(t=100),
-                legend=dict(
-                    orientation="h",
-                    yanchor="top",
-                    y=-0.2,
-                    xanchor="center",
-                    x=0.5
-                )
-            )
+        except Exception as e:
+            print(f"Unexpected error in line_chart: {e}")
+            return ui.HTML(f"""
+                        <div style="
+                            background-color: #f8d7da;
+                            color: #721c24;
+                            padding: 15px;
+                            border: 1px solid #f5c6cb;
+                            border-radius: 5px;
+                            text-align: center;
+                            font-family: Arial, sans-serif;
+                            font-size: 16px;
+                            margin: 10px 0;
+                        ">
+                            <strong>Error:</strong> An unexpected error occurred.
+                        </div>
+                    """)
 
-            # Set x-axis title
-            fig.update_xaxes(title_text="Date")
-
-            # Set y-axes titles
-            fig.update_yaxes(title_text="<b>Rentals</b>", secondary_y=False)
-            fig.update_yaxes(title_text="<b>Home Value</b>", secondary_y=True)
-
-            return ui.HTML(fig.to_html(include_plotlyjs="cdn", full_html=True))
+    #     def line_chart():
+    #         if computed_scores.get() is None:
+    #             empty_fig = go.Figure()
+    #             return ui.HTML(empty_fig.to_html(include_plotlyjs="cdn", full_html=True))
+    #             # return ui.HTML("<p>Please click Submit to view trends.</p>")
+    #         if selected_zip.get() is '':
+    #             return None
+    #         if not checkZip(selected_zip.get()):
+    #             return ui.HTML("""
+    #                         <div style="
+    #                             background-color: #f8d7da;
+    #                             color: #721c24;
+    #                             padding: 15px;
+    #                             border: 1px solid #f5c6cb;
+    #                             border-radius: 5px;
+    #                             text-align: center;
+    #                             font-family: Arial, sans-serif;
+    #                             font-size: 16px;
+    #                             margin: 10px 0;
+    #                         ">
+    #                             <strong>Error:</strong> The ZIP code entered is not valid. Please enter a valid 5-digit
+    #                             ZIP code.
+    #                         </div>
+    #                     """)
+    #         # Generate time series data
+    #         df_trends = collectingLineGraphData(selected_zip.get())
+    #         HomeValueForecast = collectingLineGraphData_HomeValueForecast(selected_zip.get())
+    #
+    #         if (
+    #                 isinstance(HomeValueForecast, list)
+    #                 and len(HomeValueForecast) == 2
+    #                 and isinstance(HomeValueForecast[0], list)
+    #                 and len(HomeValueForecast[0]) > 0
+    #                 and isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))
+    #         ):
+    #             forcast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]
+    #             ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')},
+    # {HomeValueForecast[1].strftime('%Y')})"""
+    #         else:
+    #             forcast = ""
+    #
+    #         if df_trends.empty:
+    #             return ui.HTML("""
+    #                                     <div style="
+    #                                         background-color: #f8d7da;
+    #                                         color: #721c24;
+    #                                         padding: 15px;
+    #                                         border: 1px solid #f5c6cb;
+    #                                         border-radius: 5px;
+    #                                         text-align: center;
+    #                                         font-family: Arial, sans-serif;
+    #                                         font-size: 16px;
+    #                                         margin: 10px 0;
+    #                                     ">
+    #                                         <strong>Error:</strong> The ZIP code entered is not available.
+    #                                     </div>
+    #                                 """)
+    #         else:
+    #             # Create figure with secondary y-axis
+    #             fig = make_subplots(specs=[[{"secondary_y": True}]])
+    #
+    #             # Add Rentals to the primary y-axis
+    #             fig.add_trace(
+    #                 go.Scatter(x=df_trends['date'], y=df_trends['Rentals'], name="Rentals", mode='lines+markers'),
+    #                 secondary_y=False,
+    #             )
+    #
+    #             # Add HomeValue to the secondary y-axis
+    #             fig.add_trace(
+    #                 go.Scatter(x=df_trends['date'], y=df_trends['HomeValue'], name="Home Value", mode='lines+markers'),
+    #                 secondary_y=True,
+    #             )
+    #
+    #             # Add figure title and subtitle using annotations
+    #             fig.update_layout(
+    #                 template='seaborn',
+    #                 title_text=f"""<b>Rentals vs Home Value</b> Over Time for: <span style="color:#B3A369;
+    #                 font-weight:bold">{selected_zip.get()}</span>""",
+    #                 annotations=[
+    #                     dict(
+    #                         x=.95,
+    #                         y=1.08,
+    #                         xref='paper',
+    #                         yref='paper',
+    #                         text=forcast,
+    #                         # text=f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][
+    #                         # 'HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')},
+    #                         # {HomeValueForecast[1].strftime('%Y')})""",
+    #                         showarrow=False,
+    #                         font=dict(
+    #                             size=12,
+    #                             color="grey"
+    #                         ),
+    #                         align='center'
+    #                     ),
+    #                     dict(
+    #                         x=0,
+    #                         y=-0.3,
+    #                         xref='paper',
+    #                         yref='paper',
+    #                         text="* Rentals & Home Value are on different scale",
+    #                         showarrow=False,
+    #                         font=dict(
+    #                             size=12,
+    #                             color="black"
+    #                         ),
+    #                         align='center'
+    #                     )
+    #                 ],
+    #                 margin=dict(t=100),
+    #                 legend=dict(
+    #                     orientation="h",
+    #                     yanchor="top",
+    #                     y=-0.2,
+    #                     xanchor="center",
+    #                     x=0.5
+    #                 )
+    #             )
+    #
+    #             # Set x-axis title
+    #             fig.update_xaxes(title_text="Date")
+    #
+    #             # Set y-axes titles
+    #             fig.update_yaxes(title_text="<b>Rentals</b>", secondary_y=False)
+    #             fig.update_yaxes(title_text="<b>Home Value</b>", secondary_y=True)
+    #             print("Completed the line chart Now It will return")
+    #
+    #             return ui.HTML(fig.to_html(include_plotlyjs="cdn", full_html=True))
 
     @output
     @render.ui
     def info_box():
         if computed_scores.get() is None:
             return None
-        if selected_zip.get() is '':
+        if selected_zip.get() == '':
             return None
         if not checkZip(selected_zip.get()):
             return None

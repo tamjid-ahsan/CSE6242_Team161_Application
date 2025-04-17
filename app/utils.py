@@ -20,69 +20,135 @@ def usMapRender(df):
     with open(os.path.join(DATA_DIR, "zip_codes.geojson"), "r") as f:               # "./data/zip_codes.geojson"
         us_zip = json.load(f)
 
+    # Filter zip codes to only those in the dataframe
+    # Convert df zip codes to a set for faster lookup
+    df_zip_codes = set(df['zip'].astype(str))
+
+    # Filter the features list to only include zip codes in df
+    filtered_features = [feature for feature in us_zip_full["features"]
+                         if feature["properties"]["ZCTA5CE10"] in df_zip_codes]
+
+    # Create a new geojson object with only the filtered features
+    us_zip = {
+        "type": us_zip_full["type"],
+        "features": filtered_features
+    }
+
     gdf_state = gpd.GeoDataFrame.from_features(us_state["features"])
     gdf_counties = gpd.GeoDataFrame.from_features(us_counties["features"])
     gdf_zip = gpd.GeoDataFrame.from_features(us_zip["features"])
 
-    df["cluster"] = df["cluster"].astype("string")
+    # Merge rank data from df into gdf_zip
+    gdf_zip["ZCTA5CE10"] = gdf_zip["ZCTA5CE10"].astype(str)
+    df_for_join = df.copy()
+    df_for_join["zip"] = df_for_join["zip"].astype(str)
+
+    # Join the dataframes
+    gdf_zip = gdf_zip.merge(df_for_join[["zip", "rank"]],
+                            left_on="ZCTA5CE10",
+                            right_on="zip",
+                            how="left")
+
+    # Create color scale based on rank
+    min_rank = df["rank"].min()
+    max_rank = df["rank"].max()
+    colorscale = px.colors.sequential.Viridis
+
+    # Instead of using a single choropleth layer, let's create multiple fill layers
+    # Create bins for ranks to apply different colors
+    n_bins = 10  # Number of color bins
+    bins = np.linspace(min_rank, max_rank, n_bins + 1)
+
+    # Create layers for each bin
+    fill_layers = []
+
+    for i in range(n_bins):
+        # Filter data for this bin
+        lower = bins[i]
+        upper = bins[i + 1]
+
+        # For the last bin, include the upper bound
+        if i == n_bins - 1:
+            bin_gdf = gdf_zip[(gdf_zip['rank'] >= lower) & (gdf_zip['rank'] <= upper)]
+        else:
+            bin_gdf = gdf_zip[(gdf_zip['rank'] >= lower) & (gdf_zip['rank'] < upper)]
+
+        # Skip if empty
+        if bin_gdf.empty:
+            continue
+
+        # Get color for this bin (normalize between 0 and 1)
+        bin_pos = (i + 0.5) / n_bins  # Center position in the bin
+
+        # Get color from viridis colorscale
+        color_idx = int(bin_pos * (len(colorscale) - 1))
+        color = colorscale[color_idx][1] if isinstance(colorscale[0], (list, tuple)) else colorscale[color_idx]
+
+        # Create layer for this bin
+        if not bin_gdf.empty:
+            layer = {
+                "source": json.loads(bin_gdf.geometry.to_json()),
+                "below": "traces",
+                "type": "fill",
+                "color": color,
+                "opacity": 0.5,
+            }
+            fill_layers.append(layer)
+
+    # Add state boundaries layer
+    state_layer = {
+        "source": json.loads(gdf_state.geometry.to_json()),
+        "below": "traces",
+        "type": "line",
+        "color": "red",
+        "line": {"width": 2},
+    }
+    county_layer = {
+        "source": json.loads(gdf_counties.geometry.to_json()),
+        "below": "traces",
+        "type": "line",
+        "color": "black",
+        "line": {"width": .2},
+        "opacity": 0.3,
+    }
+
+    # Combine all layers
+    all_layers = [state_layer,county_layer] + fill_layers
 
     fig = (
         px.scatter_map(
             df,
             lat="lat",
-            lon="lon",
-            color="cluster",
+            lon="lng",
+            color="rank",
             hover_name='zip',
-            custom_data=['zip'],
-            # hover_data=["cluster"],
-            category_orders={
-                "cluster": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17",
-                            "18", "19", "20"]
-            },
-            labels={"zip": "Zip Code", "cluster": "Cluster"},
-            # hover_data={"state_code": False, "final_score": True},
-            color_discrete_sequence=px.colors.qualitative.Plotly,
+            custom_data=['zip', 'city', 'state_name', 'population', 'avg_temp', 'health_rating',
+                         'avg_salary_per_earner',
+                         'recent_rental_price', 'rank'],
+            labels={"zip": "Zip Code", "rank": "Rank"},
+            color_continuous_scale=colorscale,
             template="plotly",
             height=700
         )
-            .update_traces(marker={"size": 3},
-                           hovertemplate="<b>Zip Code:</b> %{hovertext}<extra></extra>"
-                           )
+            .update_traces(
+            marker={"size": df['density'], "sizemode": "area", "sizeref": 2. * max(df['density']) / (15. ** 2),
+                    "sizemin": 2},
+            hovertemplate=(
+                "<b>%{customdata[1]}</b>, %{customdata[2]}<br>"
+                "Population: %{customdata[3]}<br>"
+                "Avg Temp: %{customdata[4]}°F<br>"
+                "Health Rating: %{customdata[5]}<br>"
+                "Avg Salary: $%{customdata[6]:,.0f}K<br>"
+                "Rental Price: $%{customdata[7]:,.0f}<br>"
+                "Rank: %{customdata[8]}"
+                "<extra></extra>"
+            )
+        )
             .update_layout(
-            # geo = dict(
-            #     scope='usa',
-            #     projection_type='albers usa',
-            #     showland = True
-            # ),
             map={
                 "style": "open-street-map",
                 "zoom": 3,
-                # "maxzoom": 5,
-                "layers": [
-                    {
-                        "source": json.loads(gdf_state.geometry.to_json()),
-                        "below": "traces",
-                        "type": "line",
-                        "color": "red",
-                        "line": {"width": 2},
-                    },
-                    {
-                        "source": json.loads(gdf_counties.geometry.to_json()),
-                        "below": "traces",
-                        "type": "line",
-                        "color": "grey",
-                        "line": {"width": 1.5},
-                        "opacity": .5,
-                    },
-                    {
-                        "source": json.loads(gdf_zip.geometry.to_json()),
-                        "below": "traces",
-                        "type": "line",
-                        "color": "blue",
-                        "line": {"width": .3},
-                        "opacity": .5,
-                    }
-                ],
+                "layers": all_layers,
             },
             margin={"l": 0, "r": 0, "t": 0, "b": 0},
             annotations=[
@@ -101,20 +167,19 @@ def usMapRender(df):
                     )
                 )
             ],
-            legend=dict(
-                # title=dict(
-                #     font=dict(
-                #         size=8
-                #     )
-                # ),
-                orientation="v",
-                x=0.01,  # Slightly inset from the absolute left edge (0)
-                y=0.99,  # Slightly down from the absolute top edge (1)
-                xanchor='left',  # Anchor the legend's left edge to the x coordinate
-                yanchor='top',  # Anchor the legend's top edge to the y coordinate
-                bgcolor='rgba(255,255,255,0.85)',  # Add semi-transparent background
-                bordercolor='Grey',  # Add border
-                borderwidth=1  # Border width
+            coloraxis_colorbar=dict(
+                title="Rank",
+                thicknessmode="pixels",
+                thickness=20,
+                lenmode="pixels",
+                len=300,
+                yanchor="top",
+                y=1,
+                xanchor="left",
+                x=0.01,
+                bgcolor='rgba(255,255,255,0.85)',
+                bordercolor='Grey',
+                borderwidth=1
             )
         )
     )
@@ -255,27 +320,19 @@ def classify_climate(avg_temp, avg_snow, avg_rain):
     return "Climate"
 
 
-def calculate_top_suggestion(zipcode, radius):
-    suggested_zip = []
-    counter = 0
-    df = pd.read_csv("./ml/ml_pred_sample.csv",
-                     dtype={"zip": "str"})
-    df_sorted = df.sort_values(by="prob", ascending=False)
-    # Filter by ZIP code
+def calculate_top_suggestion(zipcode, radius, df_sorted):
     selected_row = df_sorted[df_sorted["zip"] == str(zipcode)]
+    if selected_row.empty:
+        return None
     zip_lat = selected_row["lat"]
-    zip_lon = selected_row["lon"]
-    for index, row in df_sorted.iterrows():
-        lat = row["lat"]
-        lon = row["lon"]
-        distance = haversine(zip_lat, zip_lon, lat, lon)
-
-        if distance <= radius:
-            suggested_zip.append(row['zip'])
-            counter = counter + 1
-            if counter == 10:
-                break
-    print(suggested_zip)
+    zip_lon = selected_row["lng"]
+    df_sorted = df_sorted.copy()
+    df_sorted["distance"] = df_sorted.apply(
+        lambda row: haversine(zip_lat, zip_lon, row["lat"], row["lng"]),
+        axis=1
+    )
+    filtered_df = df_sorted[df_sorted["distance"] <= radius]
+    return filtered_df
 
 
 # 58856
