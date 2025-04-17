@@ -341,8 +341,7 @@ def collectingZipInformation(zip):
     zipcode = int(zip)
     df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_merged_data.csv"))                              # './data/cleaned_merged_data.csv'
     pol_df = pd.read_csv(os.path.join(DATA_DIR, "cleaned_2016_election_results.csv"), dtype={"ZIP": "str"})    # "./data/cleaned_2016_election_results.csv"
-    # df = pd.read_csv('data/cleaned_merged_data.csv')
-    # m_df = df.query("zip == @zipcode").T
+
     info = df.query("zip == @zipcode")[
         [
             "city",
@@ -399,9 +398,9 @@ def collectingZipInformation(zip):
                     if not pol_df[pol_df['ZIP'] == str(zipcode)].empty
                     else "Political affiliation data not available."
                 ),
-            '<img src="assets/volatility.png" alt="Map Icon" width="14" height="14" '
-            'style="vertical-align:left; margin-left:0px;"> Political Affiliation Volatility':
-                f"{info_dict['dem_lead_std']:.2f} << THIS NEEDS EXPLANATION",
+            # '<img src="assets/volatility.png" alt="Map Icon" width="14" height="14" '
+            # 'style="vertical-align:left; margin-left:0px;"> Political Affiliation Volatility':
+            #     f"{info_dict['dem_lead_std']:.2f} << THIS NEEDS EXPLANATION",
             '🎓 Post-secondary institutions': info_dict['num_postsecondary_institutions'],
             '🩺 Health rating': f"{info_dict['health_rating']} << THIS NEEDS EXPLANATION",
             '💰 Average salary/earner': f"{info_dict['avg_salary_per_earner']:,.0f}K",

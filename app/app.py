@@ -477,7 +477,7 @@ def server(input, output, session):
     @render.ui
     def info_label_ui():
         if map_rendered.get():
-            return ui.div(ui.p("Useful idiot"), id="info_label")
+            return ui.div(ui.p("Put useful information"), id="info_label")
         else:
             return ui.div(id="info_label", style="display: none;")
 
@@ -1118,135 +1118,6 @@ def server(input, output, session):
                         </div>
                     """)
 
-    #     def line_chart():
-    #         if computed_scores.get() is None:
-    #             empty_fig = go.Figure()
-    #             return ui.HTML(empty_fig.to_html(include_plotlyjs="cdn", full_html=True))
-    #             # return ui.HTML("<p>Please click Submit to view trends.</p>")
-    #         if selected_zip.get() is '':
-    #             return None
-    #         if not checkZip(selected_zip.get()):
-    #             return ui.HTML("""
-    #                         <div style="
-    #                             background-color: #f8d7da;
-    #                             color: #721c24;
-    #                             padding: 15px;
-    #                             border: 1px solid #f5c6cb;
-    #                             border-radius: 5px;
-    #                             text-align: center;
-    #                             font-family: Arial, sans-serif;
-    #                             font-size: 16px;
-    #                             margin: 10px 0;
-    #                         ">
-    #                             <strong>Error:</strong> The ZIP code entered is not valid. Please enter a valid 5-digit
-    #                             ZIP code.
-    #                         </div>
-    #                     """)
-    #         # Generate time series data
-    #         df_trends = collectingLineGraphData(selected_zip.get())
-    #         HomeValueForecast = collectingLineGraphData_HomeValueForecast(selected_zip.get())
-    #
-    #         if (
-    #                 isinstance(HomeValueForecast, list)
-    #                 and len(HomeValueForecast) == 2
-    #                 and isinstance(HomeValueForecast[0], list)
-    #                 and len(HomeValueForecast[0]) > 0
-    #                 and isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))
-    #         ):
-    #             forcast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]
-    #             ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')},
-    # {HomeValueForecast[1].strftime('%Y')})"""
-    #         else:
-    #             forcast = ""
-    #
-    #         if df_trends.empty:
-    #             return ui.HTML("""
-    #                                     <div style="
-    #                                         background-color: #f8d7da;
-    #                                         color: #721c24;
-    #                                         padding: 15px;
-    #                                         border: 1px solid #f5c6cb;
-    #                                         border-radius: 5px;
-    #                                         text-align: center;
-    #                                         font-family: Arial, sans-serif;
-    #                                         font-size: 16px;
-    #                                         margin: 10px 0;
-    #                                     ">
-    #                                         <strong>Error:</strong> The ZIP code entered is not available.
-    #                                     </div>
-    #                                 """)
-    #         else:
-    #             # Create figure with secondary y-axis
-    #             fig = make_subplots(specs=[[{"secondary_y": True}]])
-    #
-    #             # Add Rentals to the primary y-axis
-    #             fig.add_trace(
-    #                 go.Scatter(x=df_trends['date'], y=df_trends['Rentals'], name="Rentals", mode='lines+markers'),
-    #                 secondary_y=False,
-    #             )
-    #
-    #             # Add HomeValue to the secondary y-axis
-    #             fig.add_trace(
-    #                 go.Scatter(x=df_trends['date'], y=df_trends['HomeValue'], name="Home Value", mode='lines+markers'),
-    #                 secondary_y=True,
-    #             )
-    #
-    #             # Add figure title and subtitle using annotations
-    #             fig.update_layout(
-    #                 template='seaborn',
-    #                 title_text=f"""<b>Rentals vs Home Value</b> Over Time for: <span style="color:#B3A369;
-    #                 font-weight:bold">{selected_zip.get()}</span>""",
-    #                 annotations=[
-    #                     dict(
-    #                         x=.95,
-    #                         y=1.08,
-    #                         xref='paper',
-    #                         yref='paper',
-    #                         text=forcast,
-    #                         # text=f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][
-    #                         # 'HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')},
-    #                         # {HomeValueForecast[1].strftime('%Y')})""",
-    #                         showarrow=False,
-    #                         font=dict(
-    #                             size=12,
-    #                             color="grey"
-    #                         ),
-    #                         align='center'
-    #                     ),
-    #                     dict(
-    #                         x=0,
-    #                         y=-0.3,
-    #                         xref='paper',
-    #                         yref='paper',
-    #                         text="* Rentals & Home Value are on different scale",
-    #                         showarrow=False,
-    #                         font=dict(
-    #                             size=12,
-    #                             color="black"
-    #                         ),
-    #                         align='center'
-    #                     )
-    #                 ],
-    #                 margin=dict(t=100),
-    #                 legend=dict(
-    #                     orientation="h",
-    #                     yanchor="top",
-    #                     y=-0.2,
-    #                     xanchor="center",
-    #                     x=0.5
-    #                 )
-    #             )
-    #
-    #             # Set x-axis title
-    #             fig.update_xaxes(title_text="Date")
-    #
-    #             # Set y-axes titles
-    #             fig.update_yaxes(title_text="<b>Rentals</b>", secondary_y=False)
-    #             fig.update_yaxes(title_text="<b>Home Value</b>", secondary_y=True)
-    #             print("Completed the line chart Now It will return")
-    #
-    #             return ui.HTML(fig.to_html(include_plotlyjs="cdn", full_html=True))
-
     @output
     @render.ui
     def info_box():
@@ -1270,7 +1141,7 @@ def server(input, output, session):
                                                     font-size: 16px;
                                                     margin: 10px 0;
                                                 ">
-                                                    <strong>Error:</strong> The ZIP code entered is not avilable.
+                                                    <strong>Error:</strong> The ZIP code entered is not available.
                                                 </div>
                                             """)
         info_html = f"<h5>Additional Information for Zip Code: {selected_zip.get()}</h5><ul>"
