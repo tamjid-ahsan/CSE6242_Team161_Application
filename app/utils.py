@@ -7,17 +7,17 @@ import json
 import plotly.express as px
 import os
 
-BASE_DIR = os.path.dirname(__file__)            # /cloud/project/app
-DATA_DIR = os.path.join(BASE_DIR, "data")       # /cloud/project/app/data
+BASE_DIR = os.path.dirname(__file__)                                                # /cloud/project/app
+DATA_DIR = os.path.join(BASE_DIR, "data")                                           # /cloud/project/app/data
 
 def usMapRender(df):
-    with open(os.path.join(DATA_DIR, "us-states.json"), "r") as f: # "./data/us-states.json"
+    with open(os.path.join(DATA_DIR, "us-states.json"), "r") as f:                  # "./data/us-states.json"
         us_state = json.load(f)
 
-    with open(os.path.join(DATA_DIR, "us-counties-fips.json"), "r") as f: # "./data/us-counties-fips.json"
+    with open(os.path.join(DATA_DIR, "us-counties-fips.json"), "r") as f:           # "./data/us-counties-fips.json"
         us_counties = json.load(f)
 
-    with open(os.path.join(DATA_DIR, "zip_codes.geojson"), "r") as f: # "./data/zip_codes.geojson"
+    with open(os.path.join(DATA_DIR, "zip_codes.geojson"), "r") as f:               # "./data/zip_codes.geojson"
         us_zip = json.load(f)
 
     gdf_state = gpd.GeoDataFrame.from_features(us_state["features"])
@@ -150,7 +150,7 @@ def checkZip(zip):
 
 def collectingLineGraphData(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv")) # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))                 # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
     m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValue"]].dropna()
@@ -159,7 +159,7 @@ def collectingLineGraphData(zip):
 
 def collectingLineGraphData_HomeValueForecast(zip):
     zips = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv")) # './data/rentals_homeValue_homeValueForecast.csv'
+    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))              # './data/rentals_homeValue_homeValueForecast.csv'
     # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
 
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
@@ -281,8 +281,8 @@ def calculate_top_suggestion(zipcode, radius):
 # 58856
 def collectingZipInformation(zip):
     zipcode = int(zip)
-    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv")) # './data/cleaned_merged_data.csv'
-    pol_df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"), dtype={"ZIP": "str"}) # "./data/cleaned_2016_election_results.csv"
+    df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"))                              # './data/cleaned_merged_data.csv'
+    pol_df = pd.read_csv(os.path.join(DATA_DIR, "zipcodes_clean.csv"), dtype={"ZIP": "str"})    # "./data/cleaned_2016_election_results.csv"
     # df = pd.read_csv('data/cleaned_merged_data.csv')
     # m_df = df.query("zip == @zipcode").T
     info = df.query("zip == @zipcode")[
