@@ -224,9 +224,9 @@ app_ui = ui.page_fluid(
     }
         """)
     ),
-    ui.head(
-        ui.tags.link(rel="shortcut icon", href="favicon.ico")
-    ),
+    # ui.head(
+    #     ui.tags.link(rel="shortcut icon", href="favicon.ico")
+    # ),
     # Header
     ui.div(
         ui.h2("US Relocation Recommendation Tool", class_="mb-0"),
