@@ -902,16 +902,16 @@ def server(input, output, session):
             forecast = ""
             try:
                 print("Processing forecast data")
-                if (isinstance(HomeValueForecast, list) and
-                        len(HomeValueForecast) == 2 and
-                        isinstance(HomeValueForecast[0], list) and
-                        len(HomeValueForecast[0]) > 0 and
-                        isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))):
-                    forecast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]
-                    ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, 
-                    {HomeValueForecast[1].strftime('%Y')})"""
-                    print("Generated forecast text")
-                    print(f"{forecast = }")
+                # if (isinstance(HomeValueForecast, list) and
+                #         len(HomeValueForecast) == 2 and
+                #         isinstance(HomeValueForecast[0], list) and
+                #         len(HomeValueForecast[0]) > 0 and
+                #         isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))):
+                forecast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0][0]
+                ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, 
+                {HomeValueForecast[1].strftime('%Y')})"""
+                print("Generated forecast text")
+                print(f"{forecast = }")
             except Exception as e:
                 print(f"Error formatting forecast: {e}")
                 # Continue without the forecast
