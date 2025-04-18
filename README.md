@@ -30,10 +30,21 @@ Clone the repo, install packages required for the application using poetry.
 ```bash
 git clone https://github.com/tamjid-ahsan/CSE6242_Team161_Application.git
 cd CSE6242_Team161_Application
-poetry install
 ```
 
-  > ### Install from `requirements.txt`
+install packages required for the application
+
+```bash
+poetry install --no-root  
+```
+
+activate env
+
+```bash
+eval (poetry env activate)
+```
+
+  > ### [Alternative] Install from `requirements.txt`, if using `poetry init` to setup fresh
 
   ```bash
   cat requirements.txt | xargs -n 1 poetry add
