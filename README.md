@@ -96,7 +96,7 @@ use `pwd` to confirm that you are at the right path.
 
 ```bash
 # will look something like this on a Unix system
-/Users/<your/file/path>/app
+/home/<your/file/path>/app
 ```
 
 run this to start app in <i>development</i> mode. This will run a development server with auto-reload.
