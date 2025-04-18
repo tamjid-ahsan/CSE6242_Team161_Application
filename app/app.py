@@ -5,17 +5,7 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import math
 from shinywidgets import output_widget, render_widget
-# from .utils import (
-#     checkZip, 
-#     collectingLineGraphData, 
-#     collectingZipInformation,
-#     collectingLineGraphData_HomeValueForecast, 
-#     usMapRender, 
-#     haversine, 
-#     calculate_top_suggestion
-# )
-# from .ml import predict_from_user_preference
-from utils import (
+from .utils import (
     checkZip, 
     collectingLineGraphData, 
     collectingZipInformation,
@@ -24,7 +14,17 @@ from utils import (
     haversine, 
     calculate_top_suggestion
 )
-from ml import predict_from_user_preference
+from .ml import predict_from_user_preference
+# from utils import (
+#     checkZip, 
+#     collectingLineGraphData, 
+#     collectingZipInformation,
+#     collectingLineGraphData_HomeValueForecast, 
+#     usMapRender, 
+#     haversine, 
+#     calculate_top_suggestion
+# )
+# from ml import predict_from_user_preference
 import os
 from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
