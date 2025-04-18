@@ -70,7 +70,7 @@ install packages required for the application
 poetry install --no-root  
 ```
 
->> if errored because of python compatibility, use this to us proper python version `poetry env use 3.12`
+>> if errored because of python compatibility, use this to use proper python version `poetry env use 3.12`
 
 activate env
 
