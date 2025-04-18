@@ -100,10 +100,15 @@ Then open `http://localhost:63253` in your browser.
 
 ## Data source
 
-1. Zillow
-2. NYT
-3. US Census
+1. Zillow: [Housing Data](https://www.zillow.com/research/data/)
+2. NYT: Political demography data
+3. US Census: Population/demographic Data
+4. Climate
+5. Education
+6. Health
+7. Income & Tax
+8. GeoData: [Plotly FIPS data](https://github.com/plotly/datasets/blob/master/geojson-counties-fips.json), github
 
-## Known Issue:
+## Known Issue
 
 - map container sometimes resets to wrong aspect ratio.
