@@ -75,7 +75,7 @@ poetry install --no-root
 activate env
 
 ```bash
-poetry env activate
+eval $(poetry env activate)
 ```
 
   > ### [Alternative] Install from `requirements.txt`, if using `poetry init` to setup poetry fresh, go through `poetry init` routine. Don't add packages. After init, run this.
