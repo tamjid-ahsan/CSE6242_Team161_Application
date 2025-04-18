@@ -15,6 +15,16 @@ from .utils import (
     calculate_top_suggestion
 )
 from .ml import predict_from_user_preference
+# from utils import (
+#     checkZip, 
+#     collectingLineGraphData, 
+#     collectingZipInformation,
+#     collectingLineGraphData_HomeValueForecast, 
+#     usMapRender, 
+#     haversine, 
+#     calculate_top_suggestion
+# )
+# from ml import predict_from_user_preference
 import os
 from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
@@ -908,8 +918,7 @@ def server(input, output, session):
                 #         isinstance(HomeValueForecast[0], list) and
                 #         len(HomeValueForecast[0]) > 0 and
                 #         isinstance(HomeValueForecast[1], (str, datetime.datetime, datetime.date))):
-                forecast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast.get("HomeValueForecast"):,.0f}</span> ({HomeValueForecast.get("date").strftime('%b')}, 
-                {HomeValueForecast.get('date').strftime('%Y')})"""
+                forecast = f"""Forecasted Home Value: <span style="color:#B3A369">{HomeValueForecast[0].get("HomeValueForecast"):,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, {HomeValueForecast[1].strftime('%Y')})"""
                 print("Generated forecast text")
                 print(f"{forecast = }")
             except Exception as e:
