@@ -1,23 +1,34 @@
-[project]
+[tool.poetry]
+
 name = "cse5242-team161-project-application"
+
 version = "0.1.0"
+
 description = ""
-authors = [
-    {name = "Your Name",email = "you@example.com"}
-]
+
+authors = ["Tamjid Ahsan <tamjid@gatech.edu>"]
+
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "ipywidgets (>=8.1.5,<9.0.0)",
-    "shiny @ git+https://github.com/posit-dev/py-shiny@main",
-    "plotly (>=6.0.1,<7.0.0)",
-    "matplotlib (>=3.10.1,<4.0.0)",
-    "scipy (>=1.15.2,<2.0.0)",
-    "pandas (>=2.2.3,<3.0.0)",
-    "requests (>=2.32.3,<3.0.0)"
-]
+
+
+
+[tool.poetry.dependencies]
+
+python = ">=3.12,<3.13.0"
+
+ipywidgets = ">=8.1.5,<9.0.0"
+shiny = { git = "https://github.com/posit-dev/py-shiny", branch = "main" }
+plotly = ">=6.0.1,<7.0.0"
+matplotlib = ">=3.10.1,<4.0.0"
+scipy = ">=1.15.2,<2.0.0"
+pandas = ">=2.2.3,<3.0.0"
+requests = ">=2.32.3,<3.0.0"
+shinywidgets = "^0.5.2"
+geopandas = "^1.0.1"
+scikit-learn = "^1.6.1"
 
 
 [build-system]
+
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
