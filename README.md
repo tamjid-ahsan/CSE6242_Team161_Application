@@ -6,7 +6,8 @@ Find your ideal location based on personalized preferences. An interactive Pytho
 
 > Application available at: [https://tamjid-ahsan-cse6242-team161-application.share.connect.posit.cloud](https://tamjid-ahsan-cse6242-team161-application.share.connect.posit.cloud/). 
 
-This is the repo used as source code for the application hosted on [posit cloud](https://connect.posit.cloud/). This project is part of the deliverable of [OMS Analytics program of Georgia Institute of Technology](https://pe.gatech.edu/degrees/analytics).
+This repo used as source code for the application hosted on [posit cloud](https://connect.posit.cloud/).
+This project is part of the deliverables for CSE6242 of [OMS Analytics program of Georgia Institute of Technology](https://pe.gatech.edu/degrees/analytics).
 
 <b>Team</b>: Hannah Johnston, Hannah Johnson, Avery Wall, Tamjid Ahsan, George Dilip, Cheston Husein.
 
@@ -17,11 +18,10 @@ This is the repo used as source code for the application hosted on [posit cloud]
 - **Environment**: `Poetry` for dependency management  
 - **Libraries**: `pandas`, `geopandas`, `plotly`, `scikit-learn`, etc.
 
-
 ## Pre-requisite
 
 - [`poetry`](https://python-poetry.org/) for env management
-  - Setup for your OS. <i>[Official Instructions](https://python-poetry.org/docs/#installing-with-the-official-installer)</i>.
+  - Setup for your OS following the official instructions. <i>[Official Instructions](https://python-poetry.org/docs/#installing-with-the-official-installer)</i>.
 
 ## Local Installation
 
@@ -41,7 +41,7 @@ poetry install
 
 ## Usage - Run application
 
-Navigate to app dir. 
+Navigate to app dir.
 
 ```bash
 cd app
@@ -64,14 +64,42 @@ Then open `http://localhost:63253` in your browser.
 > run without `auto-reload` flag (`--autoreload-port 63254`) for demo.
 
 ## Project Structure
-```
-# repo folder structure
 
+```bash
+# repo folder structure
+.
+├── app
+│   ├── __init__.py
+│   ├── app.py                                    # application entry point
+│   ├── data
+│   │   ├── cleaned_2016_election_results.csv     # political data acquired from NYT
+│   │   ├── cleaned_merged_data.csv               # ml clustering output
+│   │   ├── rentals_homeValue_homeValueForecast.csv # rental data acquired from Zillow
+│   │   ├── us-counties-fips.json                 # used for map
+│   │   ├── us-states.json                        # used for map
+│   │   ├── zip_codes.geojson                     # used for map
+│   │   └── zipcodes_clean.csv                    # used to match zipcode data
+│   ├── index.html                                # boilerplate 
+│   ├── ml.py                                     # user preference prediction algorithm
+│   ├── utils.py                                  # helper functions
+│   └── www                                       # web assets
+│       ├── assets
+│       │   ├── georgia-tech-yellow-jackets-logo-black-and-white.png
+│       │   ├── georgia-tech-yellow-jackets-logo-png-transparent.png
+│       │   ├── gps.png
+│       │   ├── usa-map.png
+│       │   └── volatility.png
+│       └── favicon.ico
+├── LICENSE
+├── poetry.lock
+├── pyproject.toml                              # poetry file
+├── README.md
+└── requirements.txt                            # application dependency
 
 ```
 
 ## Data source
 
-```
-
-```
+1. Zillow
+2. NYT
+3. US Census
