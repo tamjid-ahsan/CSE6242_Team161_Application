@@ -107,9 +107,12 @@ def predict_from_user_preference(
         "p_density": "density",
     }
 
-    selected_preferences = preferences
+    selected_preferences = {k: int(v) for k, v in preferences.items()}
 
     selected_weights = weights
+
+    print(f"{selected_preferences = }")
+    print(f"{selected_weights = }")
 
     # match transformation based on which answer is selected
     value_mappings = {1: prefer_moderate, 2: prefer_low, 3: no_preference}
@@ -274,4 +277,4 @@ def predict_from_user_preference(
         .sort_values(by="rank")
         .reset_index(drop=True)
     )
-    return recommendation_data
+    return recommendation_data.head(60)

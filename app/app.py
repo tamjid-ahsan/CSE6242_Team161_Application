@@ -588,7 +588,9 @@ def server(input, output, session):
     @render.ui
     def info_label_ui():
         if map_rendered.get():
-            return ui.div(ui.p("Zoom using ➕/➖ or your scroll wheel, click ZIP codes for more info, and enter a ZIP plus set distance to limit your search radius."), id="info_label")
+            return ui.div(ui.p("Zoom using ➕/➖ or your scroll wheel, click ZIP codes for more info, and enter a ZIP plus set distance to limit your search radius."),
+                          ui.p("Recommendations (Top 60) are ordered by rank, with Rank 1 (blue) being the highest ranking suggestion."),
+                           id="info_label")
         else:
             return ui.div(id="info_label", style="display: none;")
 
@@ -676,8 +678,8 @@ def server(input, output, session):
                     "",
                     choices={
                         "0": "Yes - I'd like to live in or near a college town",
-                        "1": "No - I'd rather avoid areas centered around colleges",
-                        "2": "No preference"
+                        "2": "No - I'd rather avoid areas centered around colleges",
+                        "3": "No preference"
                     },
                     selected="2",
                     width="100%"
@@ -703,8 +705,8 @@ def server(input, output, session):
                     "",
                     choices={
                         "0": "Very important - I want to be in a health-conscious place",
-                        "1": "I'm not into overly health-focused communities",
-                        "2": "No preference"
+                        "2": "I'm not into overly health-focused communities",
+                        "3": "No preference"
                     },
                     selected="2",
                     width="100%"
