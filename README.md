@@ -103,3 +103,7 @@ Then open `http://localhost:63253` in your browser.
 1. Zillow
 2. NYT
 3. US Census
+
+## Known Issue:
+
+- map container sometimes resets to wrong aspect ratio.

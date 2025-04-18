@@ -250,7 +250,6 @@ def collectingLineGraphData(zip):
     df = pd.read_csv(
         os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv")
     )  # './data/rentals_homeValue_homeValueForecast.csv'
-    # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
     m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValue"]].dropna()
     return m_df
@@ -261,10 +260,8 @@ def collectingLineGraphData_HomeValueForecast(zip):
     df = pd.read_csv(
         os.path.join(DATA_DIR, "rentals_homeValue_homeValueForecast.csv")
     )  # './data/rentals_homeValue_homeValueForecast.csv'
-    # df = pd.read_csv('./data/rentals_homeValue_homeValueForecast.csv')
 
     df.rename(columns={"RegionName": "zipcode"}, inplace=True)
-    # m_df = df.query("zipcode == @zips")[["date", "Rentals", "HomeValueForecast"]].dropna()
     forecast_info = df.query("zipcode == @zips")[["date", "HomeValueForecast"]].dropna()
     if forecast_info.empty:
         return [[], ""]
@@ -427,8 +424,8 @@ def collectingZipInformation(zip):
         Warm Climates: - Temperatures above 60°F are further classified by rainfall into Mediterranean, 
         Tropical monsoon, Humid subtropical, or Tropical rainforest climate."> Climate</abbr>""": f"{classify_climate(info_dict['avg_temp'], info_dict['avg_snow'], info_dict['avg_rain'])}",
             "🌡️ Average temperature": f"{info_dict['avg_temp']:.2f}° F",
-            "❄️ Average snowfall": f"{info_dict['avg_snow']:.2f} inch << THIS NEEDS CONFIRMATION",
-            "🌧️ Average precipitation": f"{info_dict['avg_rain']:.2f} mm << THIS NEEDS CONFIRMATION",
+            "❄️ Average snowfall": f"{info_dict['avg_snow']:.2f} inch",
+            "🌧️ Average precipitation": f"{info_dict['avg_rain']:.2f} mm",
             '<abbr title="Assuming 2 party only"><img src="assets/usa-map.png" alt="Map Icon" width="14" height="14" '
             'style="vertical-align:left; margin-left:0px;"> Political Affiliation</abbr>': (
                 f"Democrat: <span style='color:blue'> ~{pol_df[pol_df['ZIP'] == str(zipcode)]['dem_pct'].values[0]:.2%}</span>; "

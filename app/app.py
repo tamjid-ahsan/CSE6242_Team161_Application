@@ -911,6 +911,7 @@ def server(input, output, session):
                     ['HomeValueForecast']:,.0f}</span> ({HomeValueForecast[1].strftime('%b')}, 
                     {HomeValueForecast[1].strftime('%Y')})"""
                     print("Generated forecast text")
+                    print(f"{forecast = }")
             except Exception as e:
                 print(f"Error formatting forecast: {e}")
                 # Continue without the forecast
@@ -962,7 +963,7 @@ def server(input, output, session):
                 # Add figure title and subtitle using annotations - create simpler layout first
                 fig.update_layout(
                     template='seaborn',
-                    title_text=f"Rentals vs Home Value Over Time for: {selected_zip.get()}",
+                    title_text=f"""<b>Rentals vs Home Value</b> Over Time for: <span style="color:#B3A369; font-weight:bold">{selected_zip.get()}</span>""",
                     margin=dict(t=100),
                     legend=dict(
                         orientation="h",
