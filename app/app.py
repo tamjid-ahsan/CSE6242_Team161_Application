@@ -5,17 +5,7 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import math
 from shinywidgets import output_widget, render_widget
-from .utils import (
-    checkZip, 
-    collectingLineGraphData, 
-    collectingZipInformation,
-    collectingLineGraphData_HomeValueForecast, 
-    usMapRender, 
-    haversine, 
-    calculate_top_suggestion
-)
-from .ml import predict_from_user_preference
-# from utils import (
+# from .utils import (
 #     checkZip, 
 #     collectingLineGraphData, 
 #     collectingZipInformation,
@@ -24,7 +14,17 @@ from .ml import predict_from_user_preference
 #     haversine, 
 #     calculate_top_suggestion
 # )
-# from ml import predict_from_user_preference
+# from .ml import predict_from_user_preference
+from utils import (
+    checkZip, 
+    collectingLineGraphData, 
+    collectingZipInformation,
+    collectingLineGraphData_HomeValueForecast, 
+    usMapRender, 
+    haversine, 
+    calculate_top_suggestion
+)
+from ml import predict_from_user_preference
 import os
 from datetime import datetime
 assets_path = os.path.join(os.path.dirname(__file__), "www")
@@ -387,7 +387,7 @@ def server(input, output, session):
                 )
 
                 p.set(0.7, message="Rendering widget...")
-                widget = go.FigureWidget(fig)
+                widget = go.FigureWidget(fig, skip_invalid=True)
 
                 # Create a flag to track if we've handled the click already
                 # This prevents processing the same click multiple times
@@ -601,7 +601,7 @@ def server(input, output, session):
             ui.h4("Your Preferences", class_="mb-4"),
             # ui.p("Set importance weights for each factor (total: 100%)", class_="weight-description"),
             ui.div(
-                ui.div(ui.strong("To what extent does weather influence where you would like to live?", class_="input-label")),
+                ui.div(ui.strong("To what extent does ", ui.tags.b("weather"), " influence where you would like to live?", class_="input-label")),
                 ui.input_slider(
                     "w_climate",
                     "",
@@ -612,7 +612,7 @@ def server(input, output, session):
                 class_="preference-slider mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("What kind of seasonal warmth or coolness do you prefer?", class_="input-label")),
+                ui.div(ui.strong("What kind of seasonal ", ui.tags.b("warmth or coolness"), " do you prefer?", class_="input-label")),
                 ui.input_select(
                     "p_temp",
                     "",
@@ -628,7 +628,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("Would you enjoy a place that experiences frequent rain?", class_="input-label")),
+                ui.div(ui.strong("Would you enjoy a place that experiences frequent ", ui.tags.b("rain"), "?", class_="input-label")),
                 ui.input_select(
                     "p_rain",
                     "",
@@ -644,7 +644,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("How would you feel about having regular snowfall?", class_="input-label")),
+                ui.div(ui.strong("How would you feel about having regular ", ui.tags.b("snowfall"), "?", class_="input-label")),
                 ui.input_select(
                     "p_snow",
                     "",
@@ -660,7 +660,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("How significant are local schools and universities in your move?",
+                ui.div(ui.strong("How significant are local ", ui.tags.b("schools and universities")," in your move?",
                                  class_="input-label")),
                 ui.input_slider(
                     "w_education",
@@ -672,7 +672,7 @@ def server(input, output, session):
                 class_="preference-slider"
             ),
             ui.div(
-                ui.div(ui.strong("Do you plan to engage with higher education settings where you move?", class_="input-label")),
+                ui.div(ui.strong("Do you plan to engage with ", ui.tags.b("higher education")," where you move?", class_="input-label")),
                 ui.input_select(
                     "p_education",
                     "",
@@ -688,7 +688,7 @@ def server(input, output, session):
             ),
             ui.div(
                 ui.div(
-                    ui.strong("To what degree should community wellness factor into your decision?", class_="input-label")),
+                    ui.strong("To what degree should ", ui.tags.b("community wellness"), " factor into your decision?", class_="input-label")),
                 ui.input_slider(
                     "w_health",
                     "",
@@ -699,7 +699,7 @@ def server(input, output, session):
                 class_="preference-slider"
             ),
             ui.div(
-                ui.div(ui.strong("How important is it that your community supports wellness activities?", class_="input-label")),
+                ui.div(ui.strong("How important is it that your community ", ui.tags.b("supports wellness activities"),"?", class_="input-label")),
                 ui.input_select(
                     "p_health",
                     "",
@@ -714,7 +714,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("How much should affordability influence your relocation?", class_="input-label")),
+                ui.div(ui.strong("How much should ", ui.tags.b("affordability"), " influence your relocation?", class_="input-label")),
                 ui.input_slider(
                     "w_cost",
                     "",
@@ -725,7 +725,7 @@ def server(input, output, session):
                 class_="preference-slider"
             ),
             ui.div(
-                ui.div(ui.strong("What balance of expenses feels right for your lifestyle?", class_="input-label")),
+                ui.div(ui.strong("What ", ui.tags.b("balance of expenses"), " feels right for your lifestyle?", class_="input-label")),
                 ui.input_select(
                     "p_income",
                     "",
@@ -741,7 +741,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("How important is finding affordable housing in your search?", class_="input-label")),
+                ui.div(ui.strong("How important is ", ui.tags.b("finding affordable housing"), " in your search?", class_="input-label")),
                 ui.input_select(
                     "p_housing",
                     "",
@@ -757,7 +757,7 @@ def server(input, output, session):
                 class_="preference-select mb-4"
             ),
             ui.div(
-                ui.div(ui.strong("How critical is the political atmosphere in choosing a new home?", class_="input-label")),
+                ui.div(ui.strong("How critical is the ", ui.tags.b("political atmosphere"), " in choosing a new home?", class_="input-label")),
                 ui.input_slider(
                     "w_politics",
                     "",
@@ -768,7 +768,7 @@ def server(input, output, session):
                 class_="preference-slider"
             ),
             ui.div(
-                ui.div(ui.strong("Which political environment would you feel most comfortable in?", class_="input-label")),
+                ui.div(ui.strong("Which ", ui.tags.b("political environment"), " would you feel most comfortable in?", class_="input-label")),
                 ui.input_select(
                     "p_politics",
                     "",
@@ -785,7 +785,7 @@ def server(input, output, session):
             ),
             ui.div(
                 ui.div(ui.strong(
-                    "How important is living environment (urban, suburban, rural) when deciding where to move?",
+                    "How important is ", ui.tags.b("living environment"), " (urban, suburban, rural) when deciding where to move?",
                     class_="input-label")),
                 ui.input_slider(
                     "w_density",
@@ -797,7 +797,7 @@ def server(input, output, session):
                 class_="preference-slider"
             ),
             ui.div(
-                ui.div(ui.strong("What size and vibe of community best match your lifestyle?", class_="input-label")),
+                ui.div(ui.strong("What ", ui.tags.b("size and vibe"), " of community best match your lifestyle?", class_="input-label")),
                 ui.input_select(
                     "p_density",
                     "",
