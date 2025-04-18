@@ -169,12 +169,12 @@ def usMapRender(df):
             },
             hovertemplate=(
                 "<b>%{customdata[1]}</b>, %{customdata[2]}<br><br>"
-                "Population: %{customdata[3]}<br>"
-                "Avg Temp: %{customdata[4]}°F<br>"
-                "Health Rating: %{customdata[5]}<br>"
+                "Population: %{customdata[3]:,.0f}<br>"
+                "Avg Temp: %{customdata[4]:,.2f}°F<br>"
+                "Health Rating: %{customdata[5]:,.0f}<br>"
                 "Avg Salary: $%{customdata[6]:,.0f}K<br>"
                 "Rental Price: $%{customdata[7]:,.0f}<br>"
-                "Rank: %{customdata[8]}"
+                "Rank: %{customdata[8]:,.0f}"
                 "<extra></extra>"
             ),
         )
