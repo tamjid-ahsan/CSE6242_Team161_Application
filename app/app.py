@@ -68,6 +68,7 @@ zip_lookup = (
 # ----------------------------
 app_ui = ui.page_fluid(
     ui.tags.head(
+        ui.tags.link(rel="icon", type="image/x-icon", href="favicon.ico"),
         ui.tags.style("""
             :root {
                 --primary-color: #4361ee;
@@ -224,9 +225,7 @@ app_ui = ui.page_fluid(
     }
         """)
     ),
-    # ui.head(
-    #     ui.tags.link(rel="shortcut icon", href="favicon.ico")
-    # ),
+    
     # Header
     ui.div(
         ui.h2("US Relocation Recommendation Tool", class_="mb-0"),
