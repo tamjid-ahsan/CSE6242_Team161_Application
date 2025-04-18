@@ -13,15 +13,47 @@ This project is part of the deliverables for CSE6242 of [OMS Analytics program o
 
 ## Tech Stack
 
-- **Language**: `Python`, `HTML`, `JavaScript`
+- **Language**: `Python` >=3.12,<3.13.0, `HTML`, `JavaScript`
 - **Framework**: [`Shiny`](https://shiny.posit.co/py/#install) for Python
 - **Environment**: `Poetry` for dependency management  
 - **Libraries**: `pandas`, `geopandas`, `plotly`, `scikit-learn`, etc.
 
 ## Pre-requisite
 
-- [`poetry`](https://python-poetry.org/) for env management
+> Note: Below commands are for [PoP!_OS](https://system76.com/pop/). A free and open-source Linux distribution, based on Ubuntu (A Debian based OS).
+- `Python` >=3.12,<3.13.0
+  - Check python version `python --version`
+  - install proper python version if required python is not available
+
+    ```bash
+    sudo add-apt-repository ppa:deadsnakes/ppa
+    sudo apt update
+    sudo apt install python3.12
+    ```
+
+  -  
+- [`poetry`](https://python-poetry.org/) =2.0.0,<3.0.0, for env management
   - Setup for your OS following the official instructions. <i>[Official Instructions](https://python-poetry.org/docs/#installing-with-the-official-installer)</i>.
+
+    - install [pipx](https://pipx.pypa.io/stable/installation/)
+  
+      ```
+      sudo apt update
+      sudo apt install pipx
+      pipx ensurepath
+      ```
+
+    - install poetry, and ensure it is in global path
+
+      ```bash
+      pipx install poetry
+      ```
+
+    - go to a new terminal shell and type, this will show poetry version (e.g., `Poetry (version 2.1.2)`)
+
+      ```bash
+      poetry --version
+      ```
 
 ## Local Installation
 
@@ -38,13 +70,15 @@ install packages required for the application
 poetry install --no-root  
 ```
 
+>> if errored because of python compatibility, use this to us proper python version `poetry env use 3.12`
+
 activate env
 
 ```bash
-eval (poetry env activate)
+poetry env activate
 ```
 
-  > ### [Alternative] Install from `requirements.txt`, if using `poetry init` to setup fresh
+  > ### [Alternative] Install from `requirements.txt`, if using `poetry init` to setup poetry fresh, go through `poetry init` routine. Don't add packages. After init, run this.
 
   ```bash
   cat requirements.txt | xargs -n 1 poetry add
