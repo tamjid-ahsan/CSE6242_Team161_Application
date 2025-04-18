@@ -879,6 +879,7 @@ def server(input, output, session):
 
                 HomeValueForecast = collectingLineGraphData_HomeValueForecast(selected_zip.get())
                 print("Collected home value forecast data")
+                print(f"{HomeValueForecast = }")
             except Exception as e:
                 print(f"Error during data collection: {e}")
                 return ui.HTML(f"""
