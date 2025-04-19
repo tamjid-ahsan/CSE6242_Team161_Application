@@ -171,7 +171,6 @@ def usMapRender(df):
                 "<b>%{customdata[1]}</b>, %{customdata[2]}<br><br>"
                 "Population: %{customdata[3]:,.0f}<br>"
                 "Avg Temp: %{customdata[4]:,.2f}°F<br>"
-                "Health Rating: %{customdata[5]:,.0f}<br>"
                 "Avg Salary: $%{customdata[6]:,.0f}K<br>"
                 "Rental Price: $%{customdata[7]:,.0f}<br>"
                 "Rank: %{customdata[8]:,.0f}"
@@ -439,7 +438,7 @@ def collectingZipInformation(zip):
             "🎓 Post-secondary institutions": info_dict[
                 "num_postsecondary_institutions"
             ],
-            "🩺 Health rating": f"{info_dict['health_rating']} << THIS NEEDS EXPLANATION",
+            # "🩺 Health rating": f"{info_dict['health_rating']} << THIS NEEDS EXPLANATION",
             "💰 Average salary/earner": f"{info_dict['avg_salary_per_earner']:,.0f}K",
             f'🧭 Zip codes in the county ({len(df.query("""county_name == @info_dict["county_name"]""")["zip"].unique())})': ", ".join(
                 [
